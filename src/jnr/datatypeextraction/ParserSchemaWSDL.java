@@ -110,7 +110,9 @@ public class ParserSchemaWSDL {
                 out("    Model Particles: ");
                 for (SchemaComponent sc : ((ModelGroup) ct.getModel()).getParticles()) {
                     out("      Particle Kind: " + sc.getClass().getSimpleName());
-                    out("      Particle Name: " + sc.getName() + "\n");
+                    out("      Particle Name: " + sc.getName());
+                    out("             Prefix: " + sc.getPrefix());
+                    out("             String: " + sc.getAsString() + "\n");
                 }
             }
  
