@@ -32,10 +32,13 @@ public class ParserSchemaWSDL {
         ///////////////////////////////////////////////////////////////////EXTRAER SCHEMA DE WSDL
         WSDLParser parser = new WSDLParser();
  
-        Definitions wsdl = parser.parse("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
-     
-        Schema schema = wsdl.getSchema("http://thomas-bayer.com/blz/");
+        Definitions wsdl = parser.parse("http://www.restfulwebservices.net/wcf/BibleKJVService.svc?wsdl");
+        //Definitions wsdl = parser.parse("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
         
+     
+        //Schema schema = wsdl.getSchema("http://thomas-bayer.com/blz/");
+        //Schema schema = wsdl.getSchema(wsdl.getTargetNamespace());
+        Schema schema = wsdl.getSchema("http://www.restfulwebservices.net/ServiceContracts/2008/01/Imports");
         
         ///////////////////////////////////////////////////////////////////CODIGO PARSEO SCHEMA
         //SchemaParser parser = new SchemaParser();
@@ -47,6 +50,9 @@ public class ParserSchemaWSDL {
         out("  ElementFormDefault: " + schema.getElementFormDefault());
         out("");
  
+        out("Schema as String: ");
+        out(schema.getAsString());
+        
         if (schema.getImports().size() > 0) {
             out("  Schema Imports: ");
             for (Import imp : schema.getImports()) {
@@ -75,6 +81,8 @@ public class ParserSchemaWSDL {
                 out("    Element Type Name: " + schema.getType(e.getType()).getName());
                 out("    Element minoccurs: " + e.getMinOccurs());
                 out("    Element maxoccurs: " + e.getMaxOccurs());
+                out("  Schema del Elemento: " + e.getSchema().toString());
+                
                 if (e.getAnnotation() != null)
                     annotationOut(e);
             }
