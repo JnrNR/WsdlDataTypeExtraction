@@ -1,10 +1,6 @@
-
+//Author: Jorge Náder Roa
 
 package jnr.datatypeextraction;
-/**
- *
- * @author JNR
- */
 
 
 import com.predic8.schema.Appinfo;
