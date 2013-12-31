@@ -15,7 +15,9 @@ public class ElementoWSDL implements InterfazElementoWSDL {
     private String nombre;
     private String tipoDeDato;
     
-    ElementoWSDL(int tipoDeElemento, String nombre, String tipoDeDato){
+    public ElementoWSDL(){}
+    
+    public ElementoWSDL(int tipoDeElemento, String nombre, String tipoDeDato){
         this.tipoDeElemento = tipoDeElemento;
         this.nombre = nombre;
         this.tipoDeDato = tipoDeDato;

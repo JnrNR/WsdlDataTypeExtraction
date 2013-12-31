@@ -1,14 +1,15 @@
 //Author: Jorge Náder Roa
 
-package jnr.treestruct;
+package jnr.wsdltreestruct;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import jnr.datatypeextraction.ElementoWSDL;
 import jnr.datatypeextraction.InterfazElementoWSDL;
 
 
-public class Arbol <T> {
+public class ArbolWSDL {
     private String RAMIFICACION = "+";
     private String HOJA = "-";
     
@@ -16,19 +17,19 @@ public class Arbol <T> {
     private List <List<Rama>> tronco;
     
     
-    Arbol(T elementoRaiz){
+    ArbolWSDL(ElementoWSDL elementoRaiz){
         tronco = new ArrayList<>();
         
         List<Rama> raizContenedor = new ArrayList<>();
         Rama ramaRaiz = new Rama(0,0,0,0);
-        ramaRaiz.insertarNodo( new Nodo<>(elementoRaiz) );
+        ramaRaiz.insertarNodo( new Nodo(elementoRaiz) );
         
         raizContenedor.add(ramaRaiz);
         tronco.add(raizContenedor);
         
     }
     
-    public void insertarNodo(String rutaInsercion, T nuevoNodo){
+    public void insertarNodo(String rutaInsercion, ElementoWSDL nuevoNodo){
         StringTokenizer tokenizerRuta = new StringTokenizer(rutaInsercion);
         String elementoRuta;
         
@@ -69,7 +70,7 @@ public class Arbol <T> {
                         //Referenciando la nueva rama en el nodo en turno
                         nodoEnTurno.setRamaDescendiente(nuevaRama.getId());
                         //Agregndo el nuevo nodo a la rama
-                        nuevaRama.insertarNodo(new Nodo<>(nuevoNodo));
+                        nuevaRama.insertarNodo(new Nodo(nuevoNodo));
                         //Insertando la rama en el contenedor
                         tronco.get(nuevaProfundidad).add(nuevaRama);
                         //listo
@@ -79,7 +80,7 @@ public class Arbol <T> {
                         int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
                         
                         //Agregndo el nuevo nodo a la rama ya referenciada por el nodo en turno
-                        tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente()).insertarNodo(new Nodo<>(nuevoNodo));
+                        tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente()).insertarNodo(new Nodo(nuevoNodo));
                         //listo
                     
                     }else{//No existe ruta de insercion 
@@ -95,14 +96,14 @@ public class Arbol <T> {
     }
     
     @Deprecated
-    public void insertarNodo(int profundidadPadre, String padre, T nuevoNodo){
+    public void insertarNodo(int profundidadPadre, String padre, ElementoWSDL nuevoNodo){
         
         if(tronco.size()==1){//Si solo existe la raiz, se inserta el nodo en el siguiente nivel
             
             //Se crea el contenedor de ramas del siguiente nivel
             List<Rama> nivelContenedor = new ArrayList<>();
             Rama nuevaRama = new Rama(1,0,0);
-            nuevaRama.insertarNodo(new Nodo<>(nuevoNodo));
+            nuevaRama.insertarNodo(new Nodo(nuevoNodo));
             
             nivelContenedor.add(nuevaRama);//agregando la rama al contenedor
             tronco.add(nivelContenedor);//agregando el cotenedor al tronco del arbol
@@ -146,7 +147,7 @@ public class Arbol <T> {
                                         //Creando la nueva rama a insertar
                                         Rama nuevaRama = new Rama(profundidadPadre+1,rama,nodo);
                                         //Agregndo el nuevo nodo a la rama
-                                        nuevaRama.insertarNodo(new Nodo<>(nuevoNodo));
+                                        nuevaRama.insertarNodo(new Nodo(nuevoNodo));
                                         //Insertando la rama en el contenedor
                                         tronco.get(profundidadPadre+1).add(nuevaRama);
                                         //listo
@@ -171,7 +172,7 @@ public class Arbol <T> {
     private void imprimirNodo(String nombre, int tipoDeElemento, String tipoDeDato, int identacion, String tipoNodo){
         //Coloca identación
         for(int i=0; i<=identacion; i++){
-                    tipoNodo = " " + tipoNodo;
+                    tipoNodo = "    " + tipoNodo;
         }
         System.out.println(tipoNodo + "[N:" + nombre + ", T:" + tipoDeElemento + ", TD:"+ tipoDeDato + "]");
         

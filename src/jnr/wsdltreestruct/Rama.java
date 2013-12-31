@@ -1,6 +1,6 @@
 //Author: Jorge Náder Roa
 
-package jnr.treestruct;
+package jnr.wsdltreestruct;
 
 import java.util.ArrayList;
 import java.util.List;
