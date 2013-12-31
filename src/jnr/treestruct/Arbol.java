@@ -4,6 +4,7 @@ package jnr.treestruct;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import jnr.datatypeextraction.InterfazElementoWSDL;
 
 
@@ -19,7 +20,7 @@ public class Arbol <T> {
         tronco = new ArrayList<>();
         
         List<Rama> raizContenedor = new ArrayList<>();
-        Rama ramaRaiz = new Rama(0,0,0);
+        Rama ramaRaiz = new Rama(0,0,0,0);
         ramaRaiz.insertarNodo( new Nodo<>(elementoRaiz) );
         
         raizContenedor.add(ramaRaiz);
@@ -27,7 +28,73 @@ public class Arbol <T> {
         
     }
     
+    public void insertarNodo(String rutaInsercion, T nuevoNodo){
+        StringTokenizer tokenizerRuta = new StringTokenizer(rutaInsercion);
+        String elementoRuta;
+        
+        Rama ramaEnTurno = tronco.get(0).get(0);
+        Nodo nodoEnTurno;
+        InterfazElementoWSDL nodoEnTurnoDatos;
+        
+        while(tokenizerRuta.hasMoreTokens()){
+            elementoRuta = tokenizerRuta.nextToken(); //Extraemos uno de los elementos de la ruta
+            
+            for(int nodo=0; nodo<ramaEnTurno.getNodos().size(); nodo++){
+                nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
+                nodoEnTurnoDatos = (InterfazElementoWSDL)nodoEnTurno;
+                
+                //Determinar si el token extraido de la rutaInsercion corresponde con el nombre del nodo en turno.
+                //Si se encuentra una igualdad entre el nombre del nodo y el token, el nodo en turno es parte de la ruta.
+                if(elementoRuta.equals(nodoEnTurnoDatos.getNombre())){//El nodo pertenece a la ruta
+                    
+                    //Verificando que exista la ruta de inserción
+                    //Verificando que el nodo encontrado poseea una rama descendiente y que existan mas tokens en la ruta
+                    if(nodoEnTurno.getRamaDescendiente()!=-1 && tokenizerRuta.hasMoreTokens()){//El nodo posee rama descendiente y mas tokens
+                        //Actualizar siguiente rama
+                        int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
+                        ramaEnTurno = tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente());
+                        
+                    }else if(nodoEnTurno.getRamaDescendiente()==-1 && !tokenizerRuta.hasMoreTokens()){//Se encontro la ruta completa y no existe la rama descendietne
+                        //Determinar si ya existe el contenedor del siguiente nivel de profundidad y si no existe crearlo.
+                        int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
+                        if(!(nuevaProfundidad<tronco.size())){
+                            //Se crea el contenedor de ramas del siguiente nivel y se inserta en el tronco
+                            List<Rama> nivelContenedor = new ArrayList<>();
+                            tronco.add(nivelContenedor);
+                        }
+                        //Se agrega el nuevo nodo
+                        
+                        //Creando la nueva rama a insertar
+                        Rama nuevaRama = new Rama(tronco.get(nuevaProfundidad).size(),nuevaProfundidad,ramaEnTurno.getId(),nodo);
+                        //Referenciando la nueva rama en el nodo en turno
+                        nodoEnTurno.setRamaDescendiente(nuevaRama.getId());
+                        //Agregndo el nuevo nodo a la rama
+                        nuevaRama.insertarNodo(new Nodo<>(nuevoNodo));
+                        //Insertando la rama en el contenedor
+                        tronco.get(nuevaProfundidad).add(nuevaRama);
+                        //listo
+                        
+                        
+                    }else if(nodoEnTurno.getRamaDescendiente()!=-1 && !tokenizerRuta.hasMoreTokens()){//Se encontro la ruta completa y ya existe la rama descendiente
+                        int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
+                        
+                        //Agregndo el nuevo nodo a la rama ya referenciada por el nodo en turno
+                        tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente()).insertarNodo(new Nodo<>(nuevoNodo));
+                        //listo
+                    
+                    }else{//No existe ruta de insercion 
+                        System.err.println("No existe la ruta de inserción");
+                    }
+                    
+                    break;
+                }
+            }
+        }
+        
+        
+    }
     
+    @Deprecated
     public void insertarNodo(int profundidadPadre, String padre, T nuevoNodo){
         
         if(tronco.size()==1){//Si solo existe la raiz, se inserta el nodo en el siguiente nivel

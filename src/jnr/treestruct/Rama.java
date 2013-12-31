@@ -15,7 +15,17 @@ class Rama{
         
         private List<Nodo> rama;
         
-        Rama(int profundidad, int ramaAntecesora,int nodoAntecesor){
+        Rama(int id, int profundidad, int ramaAntecesora, int nodoAntecesor){
+            rama = new ArrayList<Nodo>();
+            
+            this.nodoAntecesor = nodoAntecesor;
+            this.ramaAntecesora = ramaAntecesora;
+            this.profundidad = profundidad;
+            this.id = id;
+        }
+        
+        @Deprecated
+        Rama(int profundidad, int ramaAntecesora, int nodoAntecesor){
             rama = new ArrayList<Nodo>();
             
             this.nodoAntecesor = nodoAntecesor;
@@ -38,6 +48,9 @@ class Rama{
         }
         public int getProfundidad(){
             return profundidad;
+        }
+        public int getId(){
+            return id;
         }
         
         
