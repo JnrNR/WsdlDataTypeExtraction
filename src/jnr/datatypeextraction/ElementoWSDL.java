@@ -6,8 +6,10 @@ package jnr.datatypeextraction;
 public class ElementoWSDL implements InterfazElementoWSDL {
     
     public static int ELEMENTO_OPERACION = 1;
-    public static int ELEMENTO_COMPLEJO = 2;
-    public static int ELEMENTO_SIMPLE = 3;
+    public static int ELEMENTO_MENSAJE_IN = 2;
+    public static int ELEMENTO_MENSAJE_OUT = 3;
+    public static int ELEMENTO_COMPLEJO = 4;
+    public static int ELEMENTO_SIMPLE = 5;
     
     public static String TD_NULO = "NULL";
     

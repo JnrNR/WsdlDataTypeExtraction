@@ -28,13 +28,13 @@ public class ParserSchemaWSDL {
         ///////////////////////////////////////////////////////////////////EXTRAER SCHEMA DE WSDL
         WSDLParser parser = new WSDLParser();
  
-        Definitions wsdl = parser.parse("http://www.restfulwebservices.net/wcf/BibleKJVService.svc?wsdl");
-        //Definitions wsdl = parser.parse("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
+        //Definitions wsdl = parser.parse("http://www.restfulwebservices.net/wcf/BibleKJVService.svc?wsdl");
+        Definitions wsdl = parser.parse("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
         
      
         //Schema schema = wsdl.getSchema("http://thomas-bayer.com/blz/");
-        //Schema schema = wsdl.getSchema(wsdl.getTargetNamespace());
-        Schema schema = wsdl.getSchema("http://www.restfulwebservices.net/ServiceContracts/2008/01/Imports");
+        Schema schema = wsdl.getSchema(wsdl.getTargetNamespace());
+        //Schema schema = wsdl.getSchema("http://www.restfulwebservices.net/ServiceContracts/2008/01/Imports");
         
         ///////////////////////////////////////////////////////////////////CODIGO PARSEO SCHEMA
         //SchemaParser parser = new SchemaParser();

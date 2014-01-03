@@ -15,10 +15,12 @@ public class ArbolWSDL {
     
     
     private List <List<Rama>> tronco;
+    private String nombre;
     
     
     ArbolWSDL(ElementoWSDL elementoRaiz){
         tronco = new ArrayList<>();
+        nombre = elementoRaiz.getNombre();
         
         List<Rama> raizContenedor = new ArrayList<>();
         Rama ramaRaiz = new Rama(0,0,0,0);
@@ -213,6 +215,10 @@ public class ArbolWSDL {
     
     public void getTripletas(){//Requiere implementacion con una variación del método recorreArbol
     
+    }
+    
+    public String getNombre(){
+        return nombre;
     }
     
     public int getAltura(){
