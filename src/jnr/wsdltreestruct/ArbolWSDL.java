@@ -16,11 +16,13 @@ public class ArbolWSDL {
     
     private List <List<Rama>> tronco;
     private String nombre;
+    private String servicio;
     
     
-    ArbolWSDL(ElementoWSDL elementoRaiz){
+    public ArbolWSDL(ElementoWSDL elementoRaiz, String servicio){
         tronco = new ArrayList<>();
         nombre = elementoRaiz.getNombre();
+        this.servicio = servicio;
         
         List<Rama> raizContenedor = new ArrayList<>();
         Rama ramaRaiz = new Rama(0,0,0,0);
@@ -219,6 +221,10 @@ public class ArbolWSDL {
     
     public String getNombre(){
         return nombre;
+    }
+    
+    public String getServicio(){
+        return servicio;
     }
     
     public int getAltura(){

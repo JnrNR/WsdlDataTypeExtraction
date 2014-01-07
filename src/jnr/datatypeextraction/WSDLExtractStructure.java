@@ -35,7 +35,7 @@ public class WSDLExtractStructure {
     
     
     
-    //Propiedades
+    //Atributos
     private int versionWSDL;
     private List<ArbolWSDL> operaciones = new ArrayList<ArbolWSDL>();
     
@@ -61,6 +61,8 @@ public class WSDLExtractStructure {
             }else if(raiz.getAttribute("xmlns:wsdl").equalsIgnoreCase(ESPACIODENOMBRE_WSDL1) && raiz.getTagName().equalsIgnoreCase("wsdl:definitions")){
                 versionWSDL = 1;
             }
+        //Obtención de los arboles de operaciones
+            extraerArbolesDeOperaciones();
         
     }
     
@@ -69,12 +71,14 @@ public class WSDLExtractStructure {
     }
     
     public List<ArbolWSDL> getArbolesDeOperaciones(){
-        
-        List<ArbolWSDL> arregloOperaciones = new ArrayList<ArbolWSDL>();
+        return operaciones;
+    }
+    
+    private void extraerArbolesDeOperaciones(){
         
         switch(versionWSDL){
             case 1:
-                //arregloOperaciones = getArbolesDeOperaciones_WSDL1();
+                extraerArbolesDeOperaciones_WSDL1();
                 break;
             case 2:
                 System.err.println("Operación no implementada");
@@ -86,13 +90,11 @@ public class WSDLExtractStructure {
                 break;
         }
         
-        return arregloOperaciones;
-        
     }
     
-    private void getArbolesDeOperaciones_WSDL1(){
+    private void extraerArbolesDeOperaciones_WSDL1(){
         
-        System.out.println("-> Extrallendo operaciones en archivo WSDL v1\n");
+        System.out.println("-> Extrayendo operaciones en archivo WSDL v1\n");
         
         //Explorando el arbol DOM
         
@@ -112,7 +114,7 @@ public class WSDLExtractStructure {
                         //Identificando portType
                         if(((Element)nodoEnTurno).getTagName().equalsIgnoreCase("wsdl:portType")){
                             System.out.println("Index portType[" + noNodo + "]");
-                            getOperaciones_WSDL1(nodoEnTurno);
+                            extraerOperaciones_WSDL1(null, null, nodoEnTurno);
                         }                        
                     }
 
@@ -121,10 +123,46 @@ public class WSDLExtractStructure {
         
     }
     
-    private void getOperaciones_WSDL1(Node portTypeNode){
-        NodeList operaciones = portTypeNode.getChildNodes();
-        for(int noOperacion = 0; noOperacion<operaciones.getLength(); noOperacion++){
+    private void extraerOperaciones_WSDL1(String servicio, String rutaDeOperacion, Node nodoAExaminar){//Recibe el nodo del PortType
+        Node nodoEnTurno;
+        NodeList nodos = nodoAExaminar.getChildNodes();
+        //System.out.println("numero de elementos en portType:"+nodos.getLength());
+        for(int noNodo = 0; noNodo<nodos.getLength(); noNodo++){
+            nodoEnTurno = nodos.item(noNodo);
             
+            if(nodoEnTurno.getNodeType() == Node.ELEMENT_NODE){
+                Element elemento = (Element)nodoEnTurno;
+                System.out.println("Imprimiendo Nodo: "+ elemento.getTagName() + ">" + elemento.getNodeValue());
+                
+                //Formando las raices de los nodos
+                    if(elemento.getTagName().equalsIgnoreCase("wsdl:operation")){
+                        ElementoWSDL raiz = new ElementoWSDL(ElementoWSDL.ELEMENTO_OPERACION, elemento.getAttribute("name"), ElementoWSDL.TD_NULO);
+                        ArbolWSDL arbol = new ArbolWSDL(raiz, ((Element)nodoAExaminar).getAttribute("name"));
+                        operaciones.add(arbol);
+                        extraerOperaciones_WSDL1(((Element)nodoAExaminar).getAttribute("name"), elemento.getAttribute("name"), nodoEnTurno);
+                    }
+                //Agregando los hijos directos del nodo operacion (wsdl:input y wsdl:output)
+                    if(elemento.getTagName().equalsIgnoreCase("wsdl:input")){
+                        int noOperacion;
+                        for(noOperacion=0; noOperacion<operaciones.size();noOperacion++){
+                            if(operaciones.get(noOperacion).getNombre().equals(rutaDeOperacion) && operaciones.get(noOperacion).getServicio().equals(servicio)){//Identificando la operacion para insertar correctamente los hijos
+                                break;
+                            }
+                        }
+                        ElementoWSDL input = new ElementoWSDL(ElementoWSDL.ELEMENTO_MENSAJE_IN, elemento.getAttribute("message"), ElementoWSDL.TD_NULO);
+                        operaciones.get(noOperacion).insertarNodo(rutaDeOperacion, input);
+                    }
+                    if(elemento.getTagName().equalsIgnoreCase("wsdl:output")){
+                        int noOperacion;
+                        for(noOperacion=0; noOperacion<operaciones.size();noOperacion++){
+                            if(operaciones.get(noOperacion).getNombre().equals(rutaDeOperacion) && operaciones.get(noOperacion).getServicio().equals(servicio)){//Identificando la operacion para insertar correctamente los hijos
+                                break;
+                            }
+                        }
+                        ElementoWSDL input = new ElementoWSDL(ElementoWSDL.ELEMENTO_MENSAJE_OUT, elemento.getAttribute("message"), ElementoWSDL.TD_NULO);
+                        operaciones.get(noOperacion).insertarNodo(rutaDeOperacion, input);
+                    }
+            }
         }
         
     }
@@ -141,12 +179,15 @@ public class WSDLExtractStructure {
     
     
     public static void main(String[] args){
-        WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
-        objetoPruebas.getArbolesDeOperaciones();
-        
-        
+        //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
+        WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.xignite.com/xBATSLastSale.asmx?WSDL");//Direccion de Xmethod - http://www.xmethods.org/ve2/ViewListing.po;jsessionid=4g2EFxE845cgLvWrrPJxuswz?key=430207
+        //Obtención de los arboles del documento parseado por WSDLEXtractStructure
+            List<ArbolWSDL> estructuras;
+            estructuras = objetoPruebas.getArbolesDeOperaciones();
+            for(ArbolWSDL arbol:estructuras){
+                System.out.println("\nImprimiendo Arbol: " + arbol.getNombre() + " del servicio:" + arbol.getServicio());
+                arbol.imprimirArbol();
+            }   
     }
-    
-    
     
 }

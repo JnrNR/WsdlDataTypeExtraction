@@ -19,6 +19,7 @@ import com.predic8.schema.SchemaParser;
 import com.predic8.schema.SimpleType;
 import com.predic8.wsdl.Definitions;
 import com.predic8.wsdl.WSDLParser;
+import groovy.xml.QName;
 
 public class ParserSchemaWSDL {
     
@@ -116,7 +117,9 @@ public class ParserSchemaWSDL {
                     out("      Particle Kind: " + sc.getClass().getSimpleName());
                     out("      Particle Name: " + sc.getName());
                     out("             Prefix: " + sc.getPrefix());
-                    out("             String: " + sc.getAsString() + "\n");
+                    out("           DataType: " + ((QName)sc.getProperty("type")).getQualifiedName() );
+                    out("             String: " + sc.getAsString());
+                    
                 }
             }
  

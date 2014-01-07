@@ -18,7 +18,7 @@ public class PruebasArbol {
         ElementoWSDL raizN2 = new ElementoWSDL(ElementoWSDL.ELEMENTO_SIMPLE, "N2", "int");
         
         
-        ArbolWSDL arbol = new ArbolWSDL(raiz);
+        ArbolWSDL arbol = new ArbolWSDL(raiz, "ServicioPrueba");
         arbol.insertarNodo("Raiz", raizN1);
         arbol.insertarNodo("Raiz N1", raizN1E1);
         arbol.insertarNodo("Raiz N1", raizN1E2);
