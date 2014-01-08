@@ -39,7 +39,8 @@ public class WSDLExtractStructure {
     
     //Atributos
     private int versionWSDL;
-    private String prefijoXMLSchema = "s";
+    private String prefijoXMLSchema;
+    private String prefijoWSDL;
     
     private List<ArbolWSDL> operaciones = new ArrayList<ArbolWSDL>();
     
@@ -66,6 +67,7 @@ public class WSDLExtractStructure {
                 versionWSDL = 1;
             }
         //Obtención de los arboles de operaciones
+            obtenerPrefijos();
             extraerArbolesDeOperaciones();
         
     }
@@ -92,6 +94,34 @@ public class WSDLExtractStructure {
             default:
                 System.err.println("Versión WSDL no soportada");
                 break;
+        }
+        
+    }
+    
+    private void obtenerPrefijos(){
+        NodeList raiz = documentoDOM.getChildNodes();
+        Node nodoRaiz = raiz.item(0);
+        NamedNodeMap atributosRaiz = nodoRaiz.getAttributes();
+        
+        for(int noAtributo=0; noAtributo<atributosRaiz.getLength(); noAtributo++){
+            
+            
+            //Prefijo XML Schema
+            if(atributosRaiz.item(noAtributo).getNodeValue().equalsIgnoreCase(ESPACIODENOMBRE_XMLS)){
+                int inicioPrefijo = atributosRaiz.item(noAtributo).getNodeName().indexOf(":") + 1;
+                prefijoXMLSchema = atributosRaiz.item(noAtributo).getNodeName().substring(inicioPrefijo);
+            }
+            
+            //Prefijo WSDL
+            if(atributosRaiz.item(noAtributo).getNodeValue().equalsIgnoreCase(ESPACIODENOMBRE_WSDL1)){
+                int inicioPrefijo = atributosRaiz.item(noAtributo).getNodeName().indexOf(":") + 1;
+                prefijoWSDL = atributosRaiz.item(noAtributo).getNodeName().substring(inicioPrefijo);
+            }else if(atributosRaiz.item(noAtributo).getNodeValue().equalsIgnoreCase(ESPACIODENOMBRE_WSDL2)){
+                int inicioPrefijo = atributosRaiz.item(noAtributo).getNodeName().indexOf(":") + 1;
+                prefijoWSDL = atributosRaiz.item(noAtributo).getNodeName().substring(inicioPrefijo);
+            }
+            System.out.println(prefijoWSDL + "  " + prefijoXMLSchema);
+            
         }
         
     }
