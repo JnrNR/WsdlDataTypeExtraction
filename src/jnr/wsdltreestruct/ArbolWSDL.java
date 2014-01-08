@@ -15,13 +15,15 @@ public class ArbolWSDL {
     
     
     private List <List<Rama>> tronco;
-    private String nombre;
-    private String servicio;
+    private final String operacion;
+    private final String servicio;
+    private String mensajeEntrada;
+    private String mensajeSalida;
     
     
     public ArbolWSDL(ElementoWSDL elementoRaiz, String servicio){
         tronco = new ArrayList<>();
-        nombre = elementoRaiz.getNombre();
+        operacion = elementoRaiz.getNombre();
         this.servicio = servicio;
         
         List<Rama> raizContenedor = new ArrayList<>();
@@ -79,6 +81,16 @@ public class ArbolWSDL {
                         tronco.get(nuevaProfundidad).add(nuevaRama);
                         //listo
                         
+                        //Determinando si se inserto algun mensaje de entrada o salida y almacenandolo en el atributo correspondiente
+                        if(nuevaProfundidad == 1){
+                            String nombreMensaje = nuevoNodo.getNombre();
+                            if(nuevoNodo.getTipoDeElemento() == ElementoWSDL.ELEMENTO_MENSAJE_IN){
+                                mensajeEntrada = (nombreMensaje.indexOf(":")!=-1)?nombreMensaje.substring(nombreMensaje.indexOf(":")+1):nombreMensaje;
+                            }else if(nuevoNodo.getTipoDeElemento() == ElementoWSDL.ELEMENTO_MENSAJE_OUT){
+                                mensajeSalida = (nombreMensaje.indexOf(":")!=-1)?nombreMensaje.substring(nombreMensaje.indexOf(":")+1):nombreMensaje;
+                            }
+                        }
+                        
                         
                     }else if(nodoEnTurno.getRamaDescendiente()!=-1 && !tokenizerRuta.hasMoreTokens()){//Se encontro la ruta completa y ya existe la rama descendiente
                         int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
@@ -86,6 +98,16 @@ public class ArbolWSDL {
                         //Agregndo el nuevo nodo a la rama ya referenciada por el nodo en turno
                         tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente()).insertarNodo(new Nodo(nuevoNodo));
                         //listo
+                        
+                        //Determinando si se inserto algun mensaje de entrada o salida y almacenandolo en el atributo correspondiente
+                        if(nuevaProfundidad == 1){
+                            String nombreMensaje = nuevoNodo.getNombre();
+                            if(nuevoNodo.getTipoDeElemento() == ElementoWSDL.ELEMENTO_MENSAJE_IN){
+                                mensajeEntrada = (nombreMensaje.indexOf(":")!=-1)?nombreMensaje.substring(nombreMensaje.indexOf(":")+1):nombreMensaje;
+                            }else if(nuevoNodo.getTipoDeElemento() == ElementoWSDL.ELEMENTO_MENSAJE_OUT){
+                                mensajeSalida = (nombreMensaje.indexOf(":")!=-1)?nombreMensaje.substring(nombreMensaje.indexOf(":")+1):nombreMensaje;
+                            }
+                        }
                     
                     }else{//No existe ruta de insercion 
                         System.err.println("No existe la ruta de inserción");
@@ -219,12 +241,17 @@ public class ArbolWSDL {
     
     }
     
-    public String getNombre(){
-        return nombre;
-    }
-    
     public String getServicio(){
         return servicio;
+    }
+    public String getOperacion(){
+        return operacion;
+    }
+    public String getMensajeEntrada(){
+        return mensajeEntrada;
+    }
+    public String getMensajeSalida(){
+        return mensajeSalida;
     }
     
     public int getAltura(){
