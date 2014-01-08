@@ -31,6 +31,11 @@ class Nodo implements InterfazElementoWSDL {
         public String getNombre() {
             return nodo.getNombre();
         }
+        
+        @Override
+        public String getPrefijo() {
+            return nodo.getPrefijo();
+        }
 
         @Override
         public int getTipoDeElemento() {
@@ -41,5 +46,7 @@ class Nodo implements InterfazElementoWSDL {
         public String getTipoDeDato() {
             return nodo.getTipoDeDato();
         }
+
+
         
 }

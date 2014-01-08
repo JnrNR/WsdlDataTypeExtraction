@@ -56,6 +56,7 @@ public class WSDLExtractStructure {
             Logger.getLogger(ParserWSDLwthDOM.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+        /*
         //Determinando la version de WSDL
             NodeList nodosMismoNivel = documentoDOM.getChildNodes();
             Element raiz = (Element)nodosMismoNivel.item(0);
@@ -66,8 +67,11 @@ public class WSDLExtractStructure {
             }else if(raiz.getAttribute("xmlns:wsdl").equalsIgnoreCase(ESPACIODENOMBRE_WSDL1) && raiz.getTagName().equalsIgnoreCase("wsdl:definitions")){
                 versionWSDL = 1;
             }
+         */
+            extraccionInformacionWSDL();
+        
         //Obtención de los arboles de operaciones
-            obtenerPrefijos();
+            
             extraerArbolesDeOperaciones();
         
     }
@@ -98,7 +102,14 @@ public class WSDLExtractStructure {
         
     }
     
-    private void obtenerPrefijos(){
+    
+    /**
+     * Este método extrae la información de relevancia referente al documento WSDL a parsear.<br>
+     * <b>Operaciones:</b><br>
+     * -Extrae los prefijos utilizados para los espacios de nombres de XMLSchema y WSDL<br>
+     * -Identifica la version WSDL utilizada en el documento parseado.<br>
+     */
+    private void extraccionInformacionWSDL(){
         NodeList raiz = documentoDOM.getChildNodes();
         Node nodoRaiz = raiz.item(0);
         NamedNodeMap atributosRaiz = nodoRaiz.getAttributes();
@@ -106,21 +117,30 @@ public class WSDLExtractStructure {
         for(int noAtributo=0; noAtributo<atributosRaiz.getLength(); noAtributo++){
             
             
-            //Prefijo XML Schema
+            //Se identifican los prefijos designados a los espacios de nombres WSDL y XML schema, con
+            //la finalidad de hacer uso de ellos en la identificacion de elementos recuperados del arbol DOM
+            
+            //Extracción prefijo XML Schema
             if(atributosRaiz.item(noAtributo).getNodeValue().equalsIgnoreCase(ESPACIODENOMBRE_XMLS)){
                 int inicioPrefijo = atributosRaiz.item(noAtributo).getNodeName().indexOf(":") + 1;
                 prefijoXMLSchema = atributosRaiz.item(noAtributo).getNodeName().substring(inicioPrefijo);
             }
             
-            //Prefijo WSDL
+            //Extracción prefijo WSDL
             if(atributosRaiz.item(noAtributo).getNodeValue().equalsIgnoreCase(ESPACIODENOMBRE_WSDL1)){
+                //Se detectó el uso de WSDL v1
+                versionWSDL = 1;
+                
                 int inicioPrefijo = atributosRaiz.item(noAtributo).getNodeName().indexOf(":") + 1;
                 prefijoWSDL = atributosRaiz.item(noAtributo).getNodeName().substring(inicioPrefijo);
             }else if(atributosRaiz.item(noAtributo).getNodeValue().equalsIgnoreCase(ESPACIODENOMBRE_WSDL2)){
+                //Se detectó el uso de WSDL v2
+                versionWSDL = 2;
+                
                 int inicioPrefijo = atributosRaiz.item(noAtributo).getNodeName().indexOf(":") + 1;
                 prefijoWSDL = atributosRaiz.item(noAtributo).getNodeName().substring(inicioPrefijo);
             }
-            System.out.println(prefijoWSDL + "  " + prefijoXMLSchema);
+            
             
         }
         
@@ -146,7 +166,7 @@ public class WSDLExtractStructure {
                         System.out.println(noNodo+": "+((Element)nodoEnTurno).getTagName());
                         
                         //Identificando tag portType
-                        if(((Element)nodoEnTurno).getTagName().equalsIgnoreCase("wsdl:portType")){
+                        if(((Element)nodoEnTurno).getTagName().equalsIgnoreCase(prefijoWSDL + ":portType")){
                             System.out.println("Index portType[" + noNodo + "]");
                             extraerPortType_WSDL1(null, null, nodoEnTurno);
                         }                        
@@ -160,7 +180,7 @@ public class WSDLExtractStructure {
                         System.out.println(noNodo+": "+((Element)nodoEnTurno).getTagName());
                         
                         //Identificando tag message
-                        if(((Element)nodoEnTurno).getTagName().equalsIgnoreCase("wsdl:message")){
+                        if(((Element)nodoEnTurno).getTagName().equalsIgnoreCase(prefijoWSDL + ":message")){
                             System.out.println("Index message[" + noNodo + "]");
                             extraerMessage_WSDL1(nodoEnTurno);
                         }                        
@@ -174,12 +194,12 @@ public class WSDLExtractStructure {
         Element elementoMessage;
         Node part;
         Element partEnTurno;
-        
+       
         String rutaInsercion = "";
         
         if(nodoAExaminar.getNodeType() == Node.ELEMENT_NODE){
             elementoMessage = (Element)nodoAExaminar;
-            if(elementoMessage.getTagName().equalsIgnoreCase("wsdl:message")){
+            if(elementoMessage.getTagName().equalsIgnoreCase(prefijoWSDL + ":message")){
                 String mensaje = elementoMessage.getAttribute("name");
                 System.out.println("buscando operacion: " + mensaje);
                 
@@ -199,7 +219,7 @@ public class WSDLExtractStructure {
                                 partEnTurno = (Element)part;
                                 String tipoDeDato;
                                 
-                                if(partEnTurno.getTagName().equalsIgnoreCase("wsdl:part")){
+                                if(partEnTurno.getTagName().equalsIgnoreCase(prefijoWSDL + ":part")){
                                     ElementoWSDL nodo;
                                     
                                     if(partEnTurno.hasAttribute("type")){
@@ -262,7 +282,7 @@ public class WSDLExtractStructure {
                         extraerPortType_WSDL1(((Element)nodoAExaminar).getAttribute("name"), elemento.getAttribute("name"), nodoEnTurno);
                     }
                 //Agregando los hijos directos del nodo operacion (wsdl:input y wsdl:output)
-                    if(elemento.getTagName().equalsIgnoreCase("wsdl:input")){
+                    if(elemento.getTagName().equalsIgnoreCase(prefijoWSDL + ":input")){
                         int noOperacion;
                         for(noOperacion=0; noOperacion<operaciones.size();noOperacion++){
                             if(operaciones.get(noOperacion).getOperacion().equals(rutaDeOperacion) && operaciones.get(noOperacion).getServicio().equals(servicio)){//Identificando la operacion para insertar correctamente los hijos
@@ -272,7 +292,7 @@ public class WSDLExtractStructure {
                         ElementoWSDL input = new ElementoWSDL(ElementoWSDL.ELEMENTO_MENSAJE_IN, elemento.getAttribute("message"), ElementoWSDL.TD_NULO);
                         operaciones.get(noOperacion).insertarNodo(rutaDeOperacion, input);
                     }
-                    if(elemento.getTagName().equalsIgnoreCase("wsdl:output")){
+                    if(elemento.getTagName().equalsIgnoreCase(prefijoWSDL + ":output")){
                         int noOperacion;
                         for(noOperacion=0; noOperacion<operaciones.size();noOperacion++){
                             if(operaciones.get(noOperacion).getOperacion().equals(rutaDeOperacion) && operaciones.get(noOperacion).getServicio().equals(servicio)){//Identificando la operacion para insertar correctamente los hijos
@@ -299,8 +319,8 @@ public class WSDLExtractStructure {
     
     
     public static void main(String[] args){
-        WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
-        //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.xignite.com/xBATSLastSale.asmx?WSDL");//Direccion de Xmethod - http://www.xmethods.org/ve2/ViewListing.po;jsessionid=4g2EFxE845cgLvWrrPJxuswz?key=430207
+        //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
+        WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.xignite.com/xBATSLastSale.asmx?WSDL");//Direccion de Xmethod - http://www.xmethods.org/ve2/ViewListing.po;jsessionid=4g2EFxE845cgLvWrrPJxuswz?key=430207
         
         //Obtención de los arboles del documento parseado por WSDLEXtractStructure
             List<ArbolWSDL> estructuras;
