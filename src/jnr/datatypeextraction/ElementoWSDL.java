@@ -3,25 +3,18 @@
 package jnr.datatypeextraction;
 
 
-public class ElementoWSDL implements InterfazElementoWSDL {
+public class ElementoWSDL extends ElementoXMLSchema implements InterfazElementoWSDL {
     
-    public static int ELEMENTO_OPERACION = 1;
-    public static int ELEMENTO_MENSAJE_IN = 2;
-    public static int ELEMENTO_MENSAJE_OUT = 3;
-    public static int ELEMENTO_TD_COMPLEJO = 4;
-    public static int ELEMENTO_TD_SIMPLE = 5;
-    
-    public static String TD_NULO = "NULL";
-    
+    public enum TipoDeElementoWSDL {OPERACION, MENSAJE_ENTRADA, MENSAJE_SALIDA, TIPO}
+        
     private String nombre;
     private String prefijo;
     
-    private int tipoDeElemento;
-    private String tipoDeDato;
+    private TipoDeElementoWSDL tipoDeElemento;
     
     public ElementoWSDL(){}
     
-    public ElementoWSDL(int tipoDeElemento, String nombre, String tipoDeDato){
+    public ElementoWSDL(TipoDeElementoWSDL tipoDeElemento, String nombre){
         
         //Determinando si nombre posee prefijo, de ser asi separa el nombre y el prefijo
         if(nombre.indexOf(":") != -1){
@@ -33,18 +26,14 @@ public class ElementoWSDL implements InterfazElementoWSDL {
         }
         
         this.tipoDeElemento = tipoDeElemento;
-        this.tipoDeDato = tipoDeDato;
 
     }
     
-    public void setTipoDeElemento(int tipoDeElemento){
+    public void setTipoDeElemento(TipoDeElementoWSDL tipoDeElemento){
         this.tipoDeElemento = tipoDeElemento;
     }
     public void setNombre(String nombre){
         this.nombre = nombre;
-    }
-    public void setTipoDeDato(String tipoDeDato){
-        this.tipoDeDato = tipoDeDato;
     }
     
     @Override
@@ -58,13 +47,18 @@ public class ElementoWSDL implements InterfazElementoWSDL {
     }
 
     @Override
-    public int getTipoDeElemento() {
+    public TipoDeElementoWSDL getTipoDeElementoWSDL() {
         return tipoDeElemento;
+    }
+    
+    @Override
+    public ElementoXMLSchema.TipoDeElementoXMLSchema getTipoDeElementoXMLSchema() {
+        return super.getTipoDeElementoXMLSchema();
     }
 
     @Override
     public String getTipoDeDato() {
-        return tipoDeDato;
+        return super.getTipoDeDato();
     }
     
 }

@@ -84,9 +84,9 @@ public class ArbolWSDL {
                         //Determinando si se inserto algun mensaje de entrada o salida y almacenandolo en el atributo correspondiente
                         if(nuevaProfundidad == 1){
                             String nombreMensaje = nuevoNodo.getNombre();
-                            if(nuevoNodo.getTipoDeElemento() == ElementoWSDL.ELEMENTO_MENSAJE_IN){
+                            if(nuevoNodo.getTipoDeElementoWSDL().equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_ENTRADA)){
                                 mensajeEntrada = (nombreMensaje.indexOf(":")!=-1)?nombreMensaje.substring(nombreMensaje.indexOf(":")+1):nombreMensaje;
-                            }else if(nuevoNodo.getTipoDeElemento() == ElementoWSDL.ELEMENTO_MENSAJE_OUT){
+                            }else if(nuevoNodo.getTipoDeElementoWSDL().equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_SALIDA)){
                                 mensajeSalida = (nombreMensaje.indexOf(":")!=-1)?nombreMensaje.substring(nombreMensaje.indexOf(":")+1):nombreMensaje;
                             }
                         }
@@ -102,9 +102,9 @@ public class ArbolWSDL {
                         //Determinando si se inserto algun mensaje de entrada o salida y almacenandolo en el atributo correspondiente
                         if(nuevaProfundidad == 1){
                             String nombreMensaje = nuevoNodo.getNombre();
-                            if(nuevoNodo.getTipoDeElemento() == ElementoWSDL.ELEMENTO_MENSAJE_IN){
+                            if(nuevoNodo.getTipoDeElementoWSDL().equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_ENTRADA)){
                                 mensajeEntrada = (nombreMensaje.indexOf(":")!=-1)?nombreMensaje.substring(nombreMensaje.indexOf(":")+1):nombreMensaje;
-                            }else if(nuevoNodo.getTipoDeElemento() == ElementoWSDL.ELEMENTO_MENSAJE_OUT){
+                            }else if(nuevoNodo.getTipoDeElementoWSDL().equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_SALIDA)){
                                 mensajeSalida = (nombreMensaje.indexOf(":")!=-1)?nombreMensaje.substring(nombreMensaje.indexOf(":")+1):nombreMensaje;
                             }
                         }
@@ -195,12 +195,26 @@ public class ArbolWSDL {
         
     }
     
-    private void imprimirNodo(String nombre, int tipoDeElemento, String tipoDeDato, int identacion, String tipoNodo){
+    @Deprecated
+    private void imprimirNodo(String nombre, ElementoWSDL.TipoDeElementoWSDL tipoDeElemento, String tipoDeDato, int identacion, String tipoNodo){
         //Coloca identación
         for(int i=0; i<=identacion; i++){
                     tipoNodo = "    " + tipoNodo;
         }
-        System.out.println(tipoNodo + "[N:" + nombre + ", T:" + tipoDeElemento + ", TD:"+ tipoDeDato + "]");
+        System.out.println(tipoNodo + "[N:" + nombre + ", T:" + tipoDeElemento.toString() + ", TD:"+ tipoDeDato + "]");
+        
+    }
+    
+    private void imprimirNodo(InterfazElementoWSDL datosNodo, int identacion, String tipoDeNodo){
+        //Coloca identación
+        for(int i=0; i<=identacion; i++){
+                    tipoDeNodo = "    " + tipoDeNodo;
+        }
+        if(datosNodo.getTipoDeElementoWSDL().equals(ElementoWSDL.TipoDeElementoWSDL.TIPO)){
+            System.out.println(tipoDeNodo + "[Variable:" + datosNodo.getNombre() + ", TipoDeElementoWSDL:" + datosNodo.getTipoDeElementoWSDL().toString() + ", [ESQUEMA TipoDeElementoXMLSchema:"+ datosNodo.getTipoDeElementoXMLSchema() +", TipoDeDato:"+ datosNodo.getTipoDeDato() + "]]");
+        }else{
+            System.out.println(tipoDeNodo + "[Nodo:" + datosNodo.getNombre() + ", TipoDeElementoWSDL:" + datosNodo.getTipoDeElementoWSDL().toString() + "]");
+        }
         
     }
     
@@ -218,13 +232,13 @@ public class ArbolWSDL {
             nodoEnTurnoDatos = (InterfazElementoWSDL)nodoEnTurno;
             
             if(nodoEnTurno.getRamaDescendiente()!=-1){//Nodo con descenencia (imprime el nodo y analiza la descendencia)
-                imprimirNodo(nodoEnTurnoDatos.getNombre(), nodoEnTurnoDatos.getTipoDeElemento(), nodoEnTurnoDatos.getTipoDeDato(), ramaEnTurno.getProfundidad(), RAMIFICACION);
+                imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), RAMIFICACION);
                 
                 //Explorar la rama referenciada
                 recorreArbol(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()));
                 
             }else{//Nodo sin descendencia
-                imprimirNodo(nodoEnTurnoDatos.getNombre(), nodoEnTurnoDatos.getTipoDeElemento(), nodoEnTurnoDatos.getTipoDeDato(), ramaEnTurno.getProfundidad(), HOJA);
+                imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), HOJA);
             }
         }
         

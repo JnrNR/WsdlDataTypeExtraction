@@ -226,11 +226,15 @@ public class WSDLExtractStructure {
                                         //Determinando si el tipo de dato es simple o complejo
                                         tipoDeDato = partEnTurno.getAttribute("type");
                                         if(tipoDeDato.startsWith(prefijoXMLSchema)){
-                                        //Si el prefijo del espacio de nombres de XML schema, es un tipo de dato simple
-                                            nodo = new ElementoWSDL(ElementoWSDL.ELEMENTO_TD_SIMPLE, partEnTurno.getAttribute("name"), tipoDeDato);
+                                        //Si el prefijo del espacio de nombres de XML schema, es un tipo de dato primitivo
+                                            nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, partEnTurno.getAttribute("name"));
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_PRIMITIVO);
+                                            nodo.setTipoDeDato(tipoDeDato);
                                         }else{
                                         //Es un tipo de dato complejo.
-                                            nodo = new ElementoWSDL(ElementoWSDL.ELEMENTO_TD_SIMPLE, partEnTurno.getAttribute("name"), tipoDeDato);
+                                            nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, partEnTurno.getAttribute("name"));
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO);
+                                            nodo.setTipoDeDato(tipoDeDato);
                                         }
 
                                         //Insertando nodo
@@ -240,11 +244,15 @@ public class WSDLExtractStructure {
                                         //Determinando si el tipo de dato es simple o complejo
                                         tipoDeDato = partEnTurno.getAttribute("element");
                                         if(tipoDeDato.startsWith(prefijoXMLSchema)){
-                                        //Si el prefijo del espacio de nombres de XML schema, es un tipo de dato simple
-                                            nodo = new ElementoWSDL(ElementoWSDL.ELEMENTO_TD_SIMPLE, partEnTurno.getAttribute("name"), tipoDeDato);
+                                        //Si el prefijo del espacio de nombres de XML schema, es un tipo de dato primitivo
+                                            nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, partEnTurno.getAttribute("name"));
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_PRIMITIVO);
+                                            nodo.setTipoDeDato(tipoDeDato);
                                         }else{
                                         //Es un tipo de dato complejo.
-                                            nodo = new ElementoWSDL(ElementoWSDL.ELEMENTO_TD_SIMPLE, partEnTurno.getAttribute("name"), tipoDeDato);
+                                            nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, partEnTurno.getAttribute("name"));
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO);
+                                            nodo.setTipoDeDato(tipoDeDato);
                                         }
 
                                         //Insertando nodo
@@ -276,7 +284,7 @@ public class WSDLExtractStructure {
                 
                 //Formando las raices de los nodos
                     if(elemento.getTagName().equalsIgnoreCase("wsdl:operation")){
-                        ElementoWSDL raiz = new ElementoWSDL(ElementoWSDL.ELEMENTO_OPERACION, elemento.getAttribute("name"), ElementoWSDL.TD_NULO);
+                        ElementoWSDL raiz = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.OPERACION, elemento.getAttribute("name"));
                         ArbolWSDL arbol = new ArbolWSDL(raiz, ((Element)nodoAExaminar).getAttribute("name"));
                         operaciones.add(arbol);
                         extraerPortType_WSDL1(((Element)nodoAExaminar).getAttribute("name"), elemento.getAttribute("name"), nodoEnTurno);
@@ -289,7 +297,7 @@ public class WSDLExtractStructure {
                                 break;
                             }
                         }
-                        ElementoWSDL input = new ElementoWSDL(ElementoWSDL.ELEMENTO_MENSAJE_IN, elemento.getAttribute("message"), ElementoWSDL.TD_NULO);
+                        ElementoWSDL input = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_ENTRADA, elemento.getAttribute("message"));
                         operaciones.get(noOperacion).insertarNodo(rutaDeOperacion, input);
                     }
                     if(elemento.getTagName().equalsIgnoreCase(prefijoWSDL + ":output")){
@@ -299,7 +307,7 @@ public class WSDLExtractStructure {
                                 break;
                             }
                         }
-                        ElementoWSDL input = new ElementoWSDL(ElementoWSDL.ELEMENTO_MENSAJE_OUT, elemento.getAttribute("message"), ElementoWSDL.TD_NULO);
+                        ElementoWSDL input = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_SALIDA, elemento.getAttribute("message"));
                         operaciones.get(noOperacion).insertarNodo(rutaDeOperacion, input);
                     }
             }

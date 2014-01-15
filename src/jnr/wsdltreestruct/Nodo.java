@@ -3,6 +3,7 @@
 package jnr.wsdltreestruct;
 
 import jnr.datatypeextraction.ElementoWSDL;
+import jnr.datatypeextraction.ElementoXMLSchema;
 import jnr.datatypeextraction.InterfazElementoWSDL;
 
 
@@ -38,15 +39,19 @@ class Nodo implements InterfazElementoWSDL {
         }
 
         @Override
-        public int getTipoDeElemento() {
-            return nodo.getTipoDeElemento();
+        public ElementoWSDL.TipoDeElementoWSDL getTipoDeElementoWSDL() {
+            return nodo.getTipoDeElementoWSDL();
         }
 
+        @Override
+        public ElementoXMLSchema.TipoDeElementoXMLSchema getTipoDeElementoXMLSchema() {
+            return nodo.getTipoDeElementoXMLSchema();
+        }
+        
         @Override
         public String getTipoDeDato() {
             return nodo.getTipoDeDato();
         }
-
 
         
 }
