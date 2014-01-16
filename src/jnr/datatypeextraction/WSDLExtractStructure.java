@@ -2,6 +2,8 @@
 
 package jnr.datatypeextraction;
 
+import com.predic8.wsdl.Definitions;
+import com.predic8.wsdl.WSDLParser;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
@@ -35,7 +37,8 @@ public class WSDLExtractStructure {
     private DocumentBuilder dBuilder;
     private Document documentoDOM = null;
     
-    
+    //Parser tipos
+    private XMLSchemaParser esquemaDeTipos;  
     
     //Atributos
     private int versionWSDL;
@@ -46,29 +49,23 @@ public class WSDLExtractStructure {
     
     
     public WSDLExtractStructure(String WSDL_uri){
-        
-        try {
-            
-            dBuilder = dbFactory.newDocumentBuilder();
-            documentoDOM = dBuilder.parse(WSDL_uri);
-        
-        } catch (SAXException | IOException | ParserConfigurationException ex) {
-            Logger.getLogger(ParserWSDLwthDOM.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        /*
-        //Determinando la version de WSDL
-            NodeList nodosMismoNivel = documentoDOM.getChildNodes();
-            Element raiz = (Element)nodosMismoNivel.item(0);
-            System.out.println("First tag:<"+ raiz.getTagName() +" xmlns:wsdl="+ raiz.getAttribute("xmlns:wsdl") +">");
+        //Obtención del arbol DOM del documento
+            try {
 
-            if(raiz.getAttribute("xmlns:wsdl").equalsIgnoreCase(ESPACIODENOMBRE_WSDL2) && raiz.getTagName().equalsIgnoreCase("wsdl:description")){
-                versionWSDL = 2;
-            }else if(raiz.getAttribute("xmlns:wsdl").equalsIgnoreCase(ESPACIODENOMBRE_WSDL1) && raiz.getTagName().equalsIgnoreCase("wsdl:definitions")){
-                versionWSDL = 1;
+                dBuilder = dbFactory.newDocumentBuilder();
+                documentoDOM = dBuilder.parse(WSDL_uri);
+
+            } catch (SAXException | IOException | ParserConfigurationException ex) {
+                Logger.getLogger(ParserWSDLwthDOM.class.getName()).log(Level.SEVERE, null, ex);
             }
-         */
-            extraccionInformacionWSDL();
+            
+        //Extraccion de los tipos de dato del esquema
+            WSDLParser parserWSDL = new WSDLParser();
+            Definitions wsdl = parserWSDL.parse(WSDL_uri);
+            esquemaDeTipos = new XMLSchemaParser(wsdl.getSchema(wsdl.getTargetNamespace()));     
+        
+        
+        extraccionInformacionWSDL();
         
         //Obtención de los arboles de operaciones
             
@@ -314,6 +311,28 @@ public class WSDLExtractStructure {
         }
         
     }
+    
+    
+    private void extraerTipo(ElementoXMLSchema.TipoDeElementoXMLSchema tipoDeElemento, String nombreDeElemento, String rutaDeInsercion){
+        ElementoXMLSchema elementoEsquema;
+        
+        if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO)){
+            elementoEsquema = esquemaDeTipos.buscarTipoComplejo(nombreDeElemento);
+            
+        }
+        
+        if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_SIMPLE)){
+            elementoEsquema = esquemaDeTipos.buscarTipoSimple(nombreDeElemento);
+            
+        }
+        
+        if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO)){
+            elementoEsquema = esquemaDeTipos.buscarElemento(nombreDeElemento);
+            
+        }
+        
+    }
+    
     
     protected Node getNodoDOM(String nombreDelTag, NodeList nodos) {
         for ( int x = 0; x < nodos.getLength(); x++ ) {

@@ -97,11 +97,31 @@ public class XMLSchemaParser {
     
     /**
      * Busca un tipo de dato complejo definido en los esquemas 
-     * @param nombre
-     * @return 
+     * @param nombre recibe el nombre del tipo a buscar.
+     * @return devuelve el tipo complejo del tipo buscado.
      */
-    public ComplexType buscarTipoComplejo(String nombre){
-        return complexTypes.get(nombre);
+    public ElementoXMLSchema buscarTipoComplejo(String nombre){
+        return new ElementoXMLSchema( complexTypes.get(nombre) );
+        
+    }
+    
+    /**
+     * Busca un tipo de dato simple definido en los esquemas 
+     * @param nombre recibe el nombre del tipo a buscar.
+     * @return devuelve el tipo complejo del tipo buscado.
+     */
+    public ElementoXMLSchema buscarTipoSimple(String nombre){
+        return new ElementoXMLSchema( simpleTypes.get(nombre) );
+        
+    }
+    
+    /**
+     * Busca un elemento definido en los esquemas 
+     * @param nombre recibe el nombre del elemento a buscar.
+     * @return devuelve el tipo complejo del tipo buscado.
+     */
+    public ElementoXMLSchema buscarElemento(String nombre){
+        return new ElementoXMLSchema( elements.get(nombre) );
         
     }
     

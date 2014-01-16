@@ -1,6 +1,7 @@
 package jnr.datatypeextraction;
 
 import com.predic8.schema.ComplexType;
+import com.predic8.schema.Element;
 import com.predic8.schema.SimpleType;
 
 /**
@@ -9,7 +10,7 @@ import com.predic8.schema.SimpleType;
  */
 public class ElementoXMLSchema extends ElementoXML {
 
-    public enum TipoDeElementoXMLSchema {TIPO_COMPLEJO, TIPO_SIMPLE, TIPO_PRIMITIVO}
+    public enum TipoDeElementoXMLSchema {TIPO_COMPLEJO, TIPO_SIMPLE, ELEMENTO, TIPO_PRIMITIVO}
     
     private String nombreDeVariable;
     private String prefijo;
@@ -20,6 +21,7 @@ public class ElementoXMLSchema extends ElementoXML {
     private String elementoPrimitive;
     private SimpleType elementoSimpleType;
     private ComplexType elementoComplexType;
+    private Element elementoElement;
     
     public ElementoXMLSchema(){}
      
@@ -30,6 +32,7 @@ public class ElementoXMLSchema extends ElementoXML {
         tipoDeElemento = TipoDeElementoXMLSchema.TIPO_SIMPLE;
 
         elementoSimpleType = elementoSimple;
+        nombreDeVariable = elementoSimpleType.getName();
     }
     
     public ElementoXMLSchema(ComplexType elementoComplejo){
@@ -39,6 +42,18 @@ public class ElementoXMLSchema extends ElementoXML {
         tipoDeElemento = TipoDeElementoXMLSchema.TIPO_COMPLEJO;
         
         elementoComplexType = elementoComplejo;
+        nombreDeVariable = elementoComplexType.getName();
+    }
+    
+    public ElementoXMLSchema(Element elementoElement){
+        //Iniciando Constructor Super Clase
+        super.setTag("element");
+        
+        tipoDeElemento = TipoDeElementoXMLSchema.ELEMENTO;
+        
+        this.elementoElement = elementoElement; 
+        nombreDeVariable = this.elementoElement.getName();
+        
     }
     
     public ElementoXMLSchema(String elementoPrimitivo){
