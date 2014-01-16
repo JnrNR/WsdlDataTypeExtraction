@@ -30,11 +30,13 @@ import java.util.Hashtable;
  */
 public class XMLSchemaParser {
     
+    public static final String XMLSCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
+    
     Schema esquema;
     
-    Hashtable<String, ComplexType> complexTypes = new Hashtable<String, ComplexType>();
-    Hashtable<String, SimpleType> simpleTypes = new Hashtable<String, SimpleType>();
-    Hashtable<String, Element> elements = new Hashtable<String, Element>();
+    Hashtable<String, ElementoXMLSchema> complexTypes = new Hashtable<String, ElementoXMLSchema>();
+    Hashtable<String, ElementoXMLSchema> simpleTypes = new Hashtable<String, ElementoXMLSchema>();
+    Hashtable<String, ElementoXMLSchema> elements = new Hashtable<String, ElementoXMLSchema>();
     
     
     /**
@@ -69,23 +71,36 @@ public class XMLSchemaParser {
      */
     private void extraccionDeElementos(Schema esquemaEnTurno){
         
-        System.out.println(esquemaEnTurno.getPrefix("http://www.w3.org/2001/XMLSchema"));
+        System.out.println("Espacio de nombres:" + esquemaEnTurno.getTargetNamespace() + " Prefijo: " + esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()));
+        //System.out.println("Prefijo de xml schema: " + esquemaEnTurno.getPrefix(XMLSCHEMA_NS));
 
         
         //Almacenamiento de los elementos complextype
         for(ComplexType tipoComplejo : esquemaEnTurno.getComplexTypes()){
             System.out.println("[TC]" + tipoComplejo.getNamespaceUri() + ">" + tipoComplejo.getPrefix() + ":" + tipoComplejo.getName() );
-            complexTypes.put(tipoComplejo.getName(), tipoComplejo);
+            ElementoXMLSchema nuevoComplejo = new ElementoXMLSchema(tipoComplejo);
+            nuevoComplejo.setPrefijoXMLSchema( esquemaEnTurno.getPrefix(XMLSCHEMA_NS).toString() );
+            nuevoComplejo.setDatosDelEspacioDeNombresDelEsquema( esquemaEnTurno.getTargetNamespace(), esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()).toString() );
+            
+            complexTypes.put(tipoComplejo.getName(), nuevoComplejo);
         }
         //Almacenamiento de los elementos simpleType
         for(SimpleType tipoSimple : esquemaEnTurno.getSimpleTypes()){
             System.out.println("[TS]" + tipoSimple.getNamespaceUri() + ">" + tipoSimple.getPrefix() + ":" + tipoSimple.getName() );
-            simpleTypes.put(tipoSimple.getName(), tipoSimple);
+            ElementoXMLSchema nuevoSimple = new ElementoXMLSchema(tipoSimple);
+            nuevoSimple.setPrefijoXMLSchema( esquemaEnTurno.getPrefix(XMLSCHEMA_NS).toString() );
+            nuevoSimple.setDatosDelEspacioDeNombresDelEsquema( esquemaEnTurno.getTargetNamespace(), esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()).toString() );
+            
+            simpleTypes.put(tipoSimple.getName(), nuevoSimple);
         }
         //Almacenamientos de los elementos Element
         for(Element elemento : esquemaEnTurno.getElements()){
             System.out.println("[E]" + elemento.getNamespaceUri() + ">" + elemento.getPrefix() + ":" + elemento.getName() );
-            elements.put(elemento.getName(), elemento);
+            ElementoXMLSchema nuevoElemento = new ElementoXMLSchema(elemento);
+            nuevoElemento.setPrefijoXMLSchema( esquemaEnTurno.getPrefix(XMLSCHEMA_NS).toString() );
+            nuevoElemento.setDatosDelEspacioDeNombresDelEsquema( esquemaEnTurno.getTargetNamespace(), esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()).toString() );
+            
+            elements.put(elemento.getName(), nuevoElemento);
         }
         
         //Realiza la recursion  para la extraccion de elementos en los esquemas importados.
@@ -101,7 +116,7 @@ public class XMLSchemaParser {
      * @return devuelve el tipo complejo del tipo buscado.
      */
     public ElementoXMLSchema buscarTipoComplejo(String nombre){
-        return new ElementoXMLSchema( complexTypes.get(nombre) );
+        return complexTypes.get(nombre);
         
     }
     
@@ -111,7 +126,7 @@ public class XMLSchemaParser {
      * @return devuelve el tipo complejo del tipo buscado.
      */
     public ElementoXMLSchema buscarTipoSimple(String nombre){
-        return new ElementoXMLSchema( simpleTypes.get(nombre) );
+        return simpleTypes.get(nombre);
         
     }
     
@@ -121,7 +136,7 @@ public class XMLSchemaParser {
      * @return devuelve el tipo complejo del tipo buscado.
      */
     public ElementoXMLSchema buscarElemento(String nombre){
-        return new ElementoXMLSchema( elements.get(nombre) );
+        return elements.get(nombre);
         
     }
     
@@ -194,7 +209,7 @@ public class XMLSchemaParser {
                 }
             }
             
-            System.out.println("\n\nComplexType Model: " + tipoComplejo.getModel().getClass().getSimpleName());
+            System.out.println("ComplexType Model: " + tipoComplejo.getModel().getClass().getSimpleName());
             if (tipoComplejo.getModel() instanceof ModelGroup) {
                 System.out.println("    Model Particles: ");
                 for (SchemaComponent sc : ((ModelGroup) tipoComplejo.getModel()).getParticles()) {
@@ -217,7 +232,7 @@ public class XMLSchemaParser {
                 System.out.println("      Derivation Base: " + ext.getBase());
             }
             
-            
+            System.out.println("\n\n");
             
         }
         
@@ -233,9 +248,9 @@ public class XMLSchemaParser {
         Definitions wsdl = parser.parse("https://api.networkip.net/jaduka/?WSDL");
         
         XMLSchemaParser tipos = new XMLSchemaParser(wsdl.getSchema(wsdl.getTargetNamespace()));
-        //tipos.mostrarInformacionEsquemaRaiz();
+        tipos.mostrarInformacionEsquemaRaiz();
         System.out.println("\n\n\n-------------------------------Esquemas importados:");
-        tipos.mostrarInformacionEsquemasImportados();
+        //tipos.mostrarInformacionEsquemasImportados();
         tipos.chequeoTablas();
         
     }

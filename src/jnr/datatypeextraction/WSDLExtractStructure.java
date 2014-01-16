@@ -2,8 +2,12 @@
 
 package jnr.datatypeextraction;
 
+import com.predic8.schema.ComplexType;
+import com.predic8.schema.ModelGroup;
+import com.predic8.schema.SchemaComponent;
 import com.predic8.wsdl.Definitions;
 import com.predic8.wsdl.WSDLParser;
+import groovy.xml.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
@@ -230,12 +234,17 @@ public class WSDLExtractStructure {
                                         }else{
                                         //Es un tipo de dato complejo.
                                             nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, partEnTurno.getAttribute("name"));
-                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO);
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO);
                                             nodo.setTipoDeDato(tipoDeDato);
                                         }
 
                                         //Insertando nodo
                                         operaciones.get(noOperacion).insertarNodo(rutaInsercion, nodo);System.out.println("Ruta de insercion:"+rutaInsercion);
+                                        
+                                        //Si es desconocido extraer el tipo
+                                        if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
+                                            extraerTipo(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO, nodo.getTipoDeDato(), rutaInsercion + " " + nodo.getNombre() , noOperacion);
+                                        }
                                         
                                     }else if(partEnTurno.hasAttribute("element")){
                                         //Determinando si el tipo de dato es simple o complejo
@@ -248,13 +257,18 @@ public class WSDLExtractStructure {
                                         }else{
                                         //Es un tipo de dato complejo.
                                             nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, partEnTurno.getAttribute("name"));
-                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO);
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO);
                                             nodo.setTipoDeDato(tipoDeDato);
                                         }
 
                                         //Insertando nodo
                                         operaciones.get(noOperacion).insertarNodo(rutaInsercion, nodo);System.out.println("Ruta de insercion:"+rutaInsercion);
-                                                                                
+                                        
+                                        //Si es desconocido extraer el tipo
+                                        if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
+                                            extraerTipo(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO, nodo.getTipoDeDato(), rutaInsercion + " " + nodo.getNombre() , noOperacion);
+                                        }
+                                        
                                     }
                                 }
                                 
@@ -313,24 +327,94 @@ public class WSDLExtractStructure {
     }
     
     
-    private void extraerTipo(ElementoXMLSchema.TipoDeElementoXMLSchema tipoDeElemento, String nombreDeElemento, String rutaDeInsercion){
+    private void extraerTipo(ElementoXMLSchema.TipoDeElementoXMLSchema tipoDeElemento, String nombreDeElemento, String rutaDeInsercion, int operacion){
         ElementoXMLSchema elementoEsquema;
+        
+        nombreDeElemento = removerPrefijo(nombreDeElemento);
+        System.out.println("BUSCANDO::::::::::::::::::::::::::::::::::::"+nombreDeElemento);
+        
+        if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
+            //Determinar si se trata de un elemento simple, complejo o un elemento
+            
+            //Determinar si es un tipo complejo
+            elementoEsquema = esquemaDeTipos.buscarTipoComplejo(nombreDeElemento);
+            if(elementoEsquema != null){
+                //Es un complejo
+                
+                if(elementoEsquema.tipoComplejo_poeseeSubelementos()){
+                    ComplexType complejo = elementoEsquema.getElementoComplejo(); //extraccion del elemento
+                    for (SchemaComponent sc : ((ModelGroup) complejo.getModel()).getParticles()) {
+                        System.out.println(" -Particle Kind: " + sc.getClass().getSimpleName());
+                        System.out.println(" Particle Name: " + sc.getName());
+                        System.out.println(" Prefix: " + sc.getPrefix());
+                        System.out.println(" DataType: " + ((QName)sc.getProperty("type")).getQualifiedName() );
+                        System.out.println(" String: " + sc.getAsString());
+
+                    }
+                }
+                
+                
+            }else{
+                //Determinar si es un tipo simple
+                elementoEsquema = esquemaDeTipos.buscarTipoSimple(nombreDeElemento);
+                if(elementoEsquema != null){
+                    //Es un simple
+                    
+                }else{
+                    //Determinar si es un tipo elemento
+                    elementoEsquema = esquemaDeTipos.buscarElemento(nombreDeElemento);
+                    if(elementoEsquema != null){
+                        //Es un elemento
+                        
+                    }else{
+                        System.out.println("Elemento no encontrado");
+                    }
+                
+                }
+            }
+            
+        
+        }
         
         if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO)){
             elementoEsquema = esquemaDeTipos.buscarTipoComplejo(nombreDeElemento);
+            if(elementoEsquema != null){
             
+            }
         }
         
         if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_SIMPLE)){
             elementoEsquema = esquemaDeTipos.buscarTipoSimple(nombreDeElemento);
+            if(elementoEsquema != null){
             
+            }
         }
         
         if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO)){
             elementoEsquema = esquemaDeTipos.buscarElemento(nombreDeElemento);
+            if(elementoEsquema != null){
             
+            }
         }
         
+    }
+    
+    private String obtenerPrefijo(String cadena){
+        int separador = cadena.indexOf(":");
+        if(separador != -1){
+            return cadena.substring(0, separador-1);
+        }else{
+            return "";
+        }
+    }
+    
+    private String removerPrefijo(String cadena){
+        int separador = cadena.indexOf(":");
+        if(separador != -1){
+            return cadena.substring(separador+1);
+        }else{
+            return cadena;
+        }
     }
     
     

@@ -2,6 +2,7 @@ package jnr.datatypeextraction;
 
 import com.predic8.schema.ComplexType;
 import com.predic8.schema.Element;
+import com.predic8.schema.ModelGroup;
 import com.predic8.schema.SimpleType;
 
 /**
@@ -10,18 +11,27 @@ import com.predic8.schema.SimpleType;
  */
 public class ElementoXMLSchema extends ElementoXML {
 
-    public enum TipoDeElementoXMLSchema {TIPO_COMPLEJO, TIPO_SIMPLE, ELEMENTO, TIPO_PRIMITIVO}
+    public enum TipoDeElementoXMLSchema {TIPO_COMPLEJO, TIPO_SIMPLE, ELEMENTO, TIPO_PRIMITIVO, DESCONOCIDO}
     
+    //Datos del equema contenedor
+    private String espacioDeNombres;
+    private String prefijoDelEsquema;
+    private String prefijoXMLSchema;
+    
+    
+    //Datos del elemento
     private String nombreDeVariable;
-    private String prefijo;
     
     private TipoDeElementoXMLSchema tipoDeElemento;
     private String tipoDeDato;
     
+    
+    //Tipos de elemento
     private String elementoPrimitive;
     private SimpleType elementoSimpleType;
     private ComplexType elementoComplexType;
     private Element elementoElement;
+    
     
     public ElementoXMLSchema(){}
      
@@ -64,6 +74,27 @@ public class ElementoXMLSchema extends ElementoXML {
         
         elementoPrimitive = elementoPrimitivo; 
         
+    }
+    
+    public boolean tipoComplejo_poeseeSubelementos(){
+        if(elementoComplexType.getModel() instanceof ModelGroup){
+            return !((ModelGroup) elementoComplexType.getModel()).getParticles().isEmpty();
+        }else{
+            return false;
+        }
+    }
+    
+    public ComplexType getElementoComplejo(){
+        return elementoComplexType;
+    }
+    
+    public void setPrefijoXMLSchema(String prefijoXMLSchema){
+        this.prefijoXMLSchema = prefijoXMLSchema;
+    }
+    
+    public void setDatosDelEspacioDeNombresDelEsquema(String espacioDeNombres, String prefijoDelEsquema){
+        this.espacioDeNombres = espacioDeNombres;
+        this.prefijoDelEsquema = prefijoDelEsquema;
     }
 
     public void setNombreDeVariable(String nombreDeVariable){
