@@ -31,7 +31,7 @@ public class PruebasArbol {
         
         
         arbol.imprimirArbol();
-        
+                
     }
     
 }

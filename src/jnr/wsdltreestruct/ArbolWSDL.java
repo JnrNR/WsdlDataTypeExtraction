@@ -121,6 +121,42 @@ public class ArbolWSDL {
         
     }
     
+    public ElementoWSDL getNodo(String rutaDelNodo){
+        StringTokenizer tokenizerRuta = new StringTokenizer(rutaDelNodo);
+        String elementoRuta;
+        
+        Rama ramaEnTurno = tronco.get(0).get(0);
+        Nodo nodoEnTurno;
+        InterfazElementoWSDL nodoEnTurnoDatos;
+        ElementoWSDL nodoBuscado = null;
+        
+        while(tokenizerRuta.hasMoreTokens()){
+            elementoRuta = tokenizerRuta.nextToken(); //Extraemos uno de los elementos de la ruta
+            
+            for(int nodo=0; nodo<ramaEnTurno.getNodos().size(); nodo++){
+                nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
+                nodoEnTurnoDatos = (InterfazElementoWSDL)nodoEnTurno;
+                
+                if(elementoRuta.equals(nodoEnTurnoDatos.getNombre())){
+                    
+                    if(nodoEnTurno.getRamaDescendiente()!=-1 && tokenizerRuta.hasMoreTokens()){//Aun existen mas elementos en la ruta y se encontro el elemento el elemento actual de la ruta
+                        int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
+                        ramaEnTurno = tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente());
+                        
+                    }else if(!tokenizerRuta.hasMoreTokens()){//Se encontro el nodo
+                            nodoBuscado = nodoEnTurno.getNodo();
+                                                        
+                    }else if(nodoEnTurno.getRamaDescendiente() == -1 && tokenizerRuta.hasMoreTokens()){//Aun no existe la ruta desceada
+                        System.err.println("La ruta:" + rutaDelNodo + " no existe en el arbol, profundidad encontrada hasta:" + elementoRuta);
+                    }
+                               
+                } 
+            }
+        }
+        return nodoBuscado;
+        
+    }
+    
     @Deprecated
     public void insertarNodo(int profundidadPadre, String padre, ElementoWSDL nuevoNodo){
         

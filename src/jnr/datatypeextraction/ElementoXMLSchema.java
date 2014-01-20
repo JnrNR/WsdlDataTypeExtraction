@@ -88,8 +88,16 @@ public class ElementoXMLSchema extends ElementoXML {
         return elementoComplexType;
     }
     
+    public Element getElementoElement(){
+        return elementoElement;
+    }
+    
     public void setPrefijoXMLSchema(String prefijoXMLSchema){
         this.prefijoXMLSchema = prefijoXMLSchema;
+    }
+    
+    public String getPrefijoXMLSchema(){
+        return prefijoXMLSchema;
     }
     
     public void setDatosDelEspacioDeNombresDelEsquema(String espacioDeNombres, String prefijoDelEsquema){
