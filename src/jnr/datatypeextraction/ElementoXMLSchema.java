@@ -1,8 +1,12 @@
 package jnr.datatypeextraction;
 
+import com.predic8.schema.ComplexContent;
 import com.predic8.schema.ComplexType;
+import com.predic8.schema.Derivation;
 import com.predic8.schema.Element;
+import com.predic8.schema.Extension;
 import com.predic8.schema.ModelGroup;
+import com.predic8.schema.SimpleContent;
 import com.predic8.schema.SimpleType;
 
 /**
@@ -24,6 +28,7 @@ public class ElementoXMLSchema extends ElementoXML {
     
     private TipoDeElementoXMLSchema tipoDeElemento;
     private String tipoDeDato;
+    private boolean esDerivado = false;
     
     
     //Tipos de elemento
@@ -84,8 +89,28 @@ public class ElementoXMLSchema extends ElementoXML {
         }
     }
     
+    public boolean tipoComplejo_tieneContenidoSimple(){
+        if (elementoComplexType.getModel() instanceof SimpleContent){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    public boolean tipoComplejo_tieneContenidoComplejo(){
+        if (elementoComplexType.getModel() instanceof ComplexContent) {
+            return true;
+        }else{
+            return false;
+        }        
+    }
+    
     public ComplexType getElementoComplejo(){
         return elementoComplexType;
+    }
+    
+    public SimpleType getElementoSimple(){
+        return elementoSimpleType;
     }
     
     public Element getElementoElement(){
@@ -119,6 +144,14 @@ public class ElementoXMLSchema extends ElementoXML {
     
     public String getTipoDeDato(){
         return tipoDeDato;
+    }
+    
+    public void setDerivado(){
+        esDerivado = true;
+    }
+    
+    public boolean esDerivado(){
+        return esDerivado;
     }
     
     public void setTipoDeElementoXMLSchema(TipoDeElementoXMLSchema tipoDeElemento){

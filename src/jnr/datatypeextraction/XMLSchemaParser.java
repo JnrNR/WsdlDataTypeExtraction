@@ -226,10 +226,15 @@ public class XMLSchemaParser {
                 Derivation der = ((ComplexContent) tipoComplejo.getModel()).getDerivation();
                 System.out.println("      ComplexConten Derivation: " + der.getClass().getSimpleName());
                 System.out.println("      Derivation Base: " + der.getBase());
+                System.out.println("------------------------------N:"+der.getBasePN().getLocalName());
+                System.out.println("------------------------------P:"+der.getBasePN().getPrefix());
+                
             }else if (tipoComplejo.getModel() instanceof SimpleContent){
                 Extension ext = ((SimpleContent) tipoComplejo.getModel()).getExtension();
                 System.out.println("      ComplexConten Derivation: " + ext.getClass().getSimpleName());
                 System.out.println("      Derivation Base: " + ext.getBase());
+                System.out.println("------------------------------N:"+ext.getBasePN().getLocalName());
+                System.out.println("------------------------------P:"+ext.getBasePN().getPrefix());
             }
             
             System.out.println("\n\n");

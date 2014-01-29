@@ -30,10 +30,11 @@ public class ParserSchemaWSDL {
         WSDLParser parser = new WSDLParser();
  
         //checar este wsdl http://www.xmethods.net/ve2/ViewListing.po?key=425856 //Elemento Symple
+        Definitions wsdl = parser.parse("http://www.xignite.com/xAnalysts.asmx?WSDL");
         
         //Definitions wsdl = parser.parse("http://www.restfulwebservices.net/wcf/BibleKJVService.svc?wsdl");//Imports con targetnamespace mal
         //Definitions wsdl = parser.parse("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
-        Definitions wsdl = parser.parse("https://api.networkip.net/jaduka/?WSDL");//http://www.xmethods.net/ve2/ViewListing.po?key=uuid:22952E44-96F9-4597-55E1-05447A4DD947
+        //Definitions wsdl = parser.parse("https://api.networkip.net/jaduka/?WSDL");//http://www.xmethods.net/ve2/ViewListing.po?key=uuid:22952E44-96F9-4597-55E1-05447A4DD947
      
         //Schema schema = wsdl.getSchema("http://thomas-bayer.com/blz/");
         Schema schema = wsdl.getSchema(wsdl.getTargetNamespace());
@@ -144,6 +145,8 @@ public class ParserSchemaWSDL {
             for (SimpleType st : schema.getSimpleTypes()) {
                 out("    SimpleType Name: " + st.getName());
                 out("    SimpleType Restriction: " + st.getRestriction());
+                out("               -----------:Base:" + st.getRestriction().getBase().getQualifiedName());
+                out("               ----------:Prefix:" + st.getRestriction().getBase().getPrefix());
                 out("    SimpleType Union: " + st.getUnion());
                 out("    SimpleType List: " + st.getList());
             }
