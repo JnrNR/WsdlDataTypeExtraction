@@ -254,7 +254,7 @@ public class ArbolWSDL {
         
     }
     
-    private void recorreArbol(Rama ramaEnTurno){
+    private void recorreArbol(Rama ramaEnTurno, boolean recorridoRDF){
         //Variables Auxiliares
         Nodo nodoEnTurno;
         InterfazElementoWSDL nodoEnTurnoDatos;
@@ -268,13 +268,22 @@ public class ArbolWSDL {
             nodoEnTurnoDatos = (InterfazElementoWSDL)nodoEnTurno;
             
             if(nodoEnTurno.getRamaDescendiente()!=-1){//Nodo con descenencia (imprime el nodo y analiza la descendencia)
-                imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), RAMIFICACION);
+                if(recorridoRDF){
+                
+                }else{
+                    imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), RAMIFICACION);
+                }
                 
                 //Explorar la rama referenciada
-                recorreArbol(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()));
+                recorreArbol(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()), recorridoRDF);
                 
             }else{//Nodo sin descendencia
-                imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), HOJA);
+                if(recorridoRDF){
+                
+                }else{
+                    imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), HOJA);
+                }
+                
             }
         }
         
@@ -283,12 +292,15 @@ public class ArbolWSDL {
     public void imprimirArbol(){//Este método imprime en salida estandard el arbol del objeto
         
         //Inicializa el metodo desde el contenedor raiz(0) y la ramaRaiz(0) 
-        recorreArbol(tronco.get(0).get(0));
+        recorreArbol(tronco.get(0).get(0), false);
         
     }
     
-    public void getTripletas(){//Requiere implementacion con una variación del método recorreArbol
-    
+    public void getSerializacionXML(){//Requiere implementacion con una variación del método recorreArbol
+        
+        //Inicializa el metodo desde el contenedor raiz(0) y la ramaRaiz(0) 
+        recorreArbol(tronco.get(0).get(0), true);
+        
     }
     
     public String getServicio(){
