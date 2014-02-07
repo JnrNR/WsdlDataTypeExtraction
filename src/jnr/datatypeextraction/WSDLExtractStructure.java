@@ -639,6 +639,7 @@ public class WSDLExtractStructure {
             for(ArbolWSDL arbol:estructuras){
                 System.out.println("\nImprimiendo Arbol: " + arbol.getOperacion()+ " del servicio:" + arbol.getServicio());
                 arbol.imprimirArbol();
+                arbol.getSerializacionXML();
             }   
     }
     

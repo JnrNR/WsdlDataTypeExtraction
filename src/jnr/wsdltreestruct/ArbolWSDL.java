@@ -2,17 +2,21 @@
 
 package jnr.wsdltreestruct;
 
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 import jnr.datatypeextraction.ElementoWSDL;
 import jnr.datatypeextraction.InterfazElementoWSDL;
-
+import jnr.rdfmatcher.RDFVocabulary;
 
 public class ArbolWSDL {
     private String RAMIFICACION = "+";
     private String HOJA = "-";
     
+    private Model modeloRDF;
     
     private List <List<Rama>> tronco;
     private final String operacion;
@@ -254,6 +258,23 @@ public class ArbolWSDL {
         
     }
     
+    private void setTriplets(Nodo nodo, int profundidadDelNodo){
+        Rama hijosDelNodo;
+        
+        hijosDelNodo = tronco.get(profundidadDelNodo+1).get(nodo.getRamaDescendiente());
+
+        Resource sujeto = modeloRDF.createResource(RDFVocabulary.nameSpaceBase + "/" + nodo.getNombre());
+        
+        for(Nodo hijoDelNodo : hijosDelNodo.getNodos()){
+            if(hijoDelNodo.getRamaDescendiente() != -1){
+                sujeto.addProperty(RDFVocabulary.ELEMENTO, modeloRDF.createResource(RDFVocabulary.nameSpaceBase + "/" + hijoDelNodo.getNombre()));
+            }else{
+                sujeto.addProperty(RDFVocabulary.ELEMENTO, RDFVocabulary.nameSpaceBase + "/" + hijoDelNodo.getNombre());
+            }
+        }
+        
+    }
+    
     private void recorreArbol(Rama ramaEnTurno, boolean recorridoRDF){
         //Variables Auxiliares
         Nodo nodoEnTurno;
@@ -269,7 +290,7 @@ public class ArbolWSDL {
             
             if(nodoEnTurno.getRamaDescendiente()!=-1){//Nodo con descenencia (imprime el nodo y analiza la descendencia)
                 if(recorridoRDF){
-                
+                    setTriplets(nodoEnTurno, ramaEnTurno.getProfundidad());
                 }else{
                     imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), RAMIFICACION);
                 }
@@ -278,9 +299,7 @@ public class ArbolWSDL {
                 recorreArbol(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()), recorridoRDF);
                 
             }else{//Nodo sin descendencia
-                if(recorridoRDF){
-                
-                }else{
+                if(!recorridoRDF){
                     imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), HOJA);
                 }
                 
@@ -297,9 +316,13 @@ public class ArbolWSDL {
     }
     
     public void getSerializacionXML(){//Requiere implementacion con una variación del método recorreArbol
+        modeloRDF = ModelFactory.createDefaultModel();
         
         //Inicializa el metodo desde el contenedor raiz(0) y la ramaRaiz(0) 
         recorreArbol(tronco.get(0).get(0), true);
+        
+        //Escritura RDF
+        modeloRDF.write(System.out);
         
     }
     
