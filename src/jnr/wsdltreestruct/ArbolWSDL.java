@@ -1,4 +1,3 @@
-//Author: Jorge Náder Roa
 
 package jnr.wsdltreestruct;
 
@@ -12,6 +11,10 @@ import jnr.datatypeextraction.ElementoWSDL;
 import jnr.datatypeextraction.InterfazElementoWSDL;
 import jnr.rdfmatcher.RDFVocabulary;
 
+/**
+ * 
+ * @author Jorge Náder Roa
+ */
 public class ArbolWSDL {
     private String RAMIFICACION = "+";
     private String HOJA = "-";

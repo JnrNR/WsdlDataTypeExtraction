@@ -1,4 +1,3 @@
-//Author: Jorge Náder Roa
 
 package jnr.datatypeextraction;
 
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
+import jnr.utilities.Directorio;
 import jnr.utilities.Log;
 import jnr.wsdltreestruct.ArbolWSDL;
 import org.w3c.dom.Document;
@@ -32,7 +32,16 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 
+
+/**
+ * 
+ * @author Jorge Náder Roa
+ */
 public class WSDLExtractStructure {
+    //Depuración
+    public Log log = new Log(true, true, Log.ANSI_BLUE);
+    /////////////////////////////////////////////////
+    
     
     //Constantes
     private String ESPACIODENOMBRE_XMLS = "http://www.w3.org/2001/XMLSchema";
@@ -75,7 +84,11 @@ public class WSDLExtractStructure {
             WSDLParser parserWSDL = new WSDLParser();
             Definitions wsdl = parserWSDL.parse(WSDL_uri);
             esquemaWSDL = wsdl.getSchema(wsdl.getTargetNamespace());
-            esquemaDeTipos = new XMLSchemaParser(esquemaWSDL);     
+            if(esquemaWSDL!=null){
+                esquemaDeTipos = new XMLSchemaParser(esquemaWSDL);
+            }else{
+                esquemaDeTipos = new XMLSchemaParser();
+            }
         
         
         extraccionInformacionWSDL();
@@ -101,12 +114,12 @@ public class WSDLExtractStructure {
                 extraerArbolesDeOperaciones_WSDL1();
                 break;
             case 2:
-                System.err.println("Operación no implementada");
+                log.printLogErrorMessage("Operación no implementada");//DEPURACION
                 break;
             
             
             default:
-                System.err.println("Versión WSDL no soportada");
+                log.printLogErrorMessage("Versión WSDL no soportada");//DEPURACION
                 break;
         }
         
@@ -158,7 +171,7 @@ public class WSDLExtractStructure {
     
     private void extraerArbolesDeOperaciones_WSDL1(){
         
-        System.out.println("-> Extrayendo operaciones en archivo WSDL v1\n");
+        log.printLogMessage("-> Extrayendo operaciones en archivo WSDL v1\n");//DEPURACION
         
         //Explorando el arbol DOM
         
@@ -167,17 +180,17 @@ public class WSDLExtractStructure {
                 nodosEnTurno = nodosEnTurno.item(0).getChildNodes();
                 
             //Extrayendo hijos de la raiz (types, message, portType, binding, service)
-                System.out.println("Nodos Encontrados: " + nodosEnTurno.getLength());
+                log.printLogMessage("Nodos Encontrados: " + nodosEnTurno.getLength());//DEPURACION
                 
                 //Buscando los tags portType
                 for(int noNodo = 0; noNodo<nodosEnTurno.getLength(); noNodo++){
                     Node nodoEnTurno = nodosEnTurno.item(noNodo);
                     if(nodoEnTurno.getNodeType() == Node.ELEMENT_NODE){
-                        System.out.println(noNodo+": "+((Element)nodoEnTurno).getTagName());
+                        log.printLogMessage(noNodo+": "+((Element)nodoEnTurno).getTagName());//DEPURACION
                         
                         //Identificando tag portType
                         if(((Element)nodoEnTurno).getTagName().equalsIgnoreCase(prefijoWSDL + ":portType") || ((Element)nodoEnTurno).getTagName().equalsIgnoreCase("portType")){
-                            System.out.println("Index portType[" + noNodo + "]");
+                            log.printLogMessage("Index portType[" + noNodo + "]");//DEPURACION
                             extraerPortType_WSDL1(null, null, nodoEnTurno);
                         }                        
                     }   
@@ -187,11 +200,11 @@ public class WSDLExtractStructure {
                 for(int noNodo = 0; noNodo<nodosEnTurno.getLength(); noNodo++){
                     Node nodoEnTurno = nodosEnTurno.item(noNodo);
                     if(nodoEnTurno.getNodeType() == Node.ELEMENT_NODE){
-                        System.out.println(noNodo+": "+((Element)nodoEnTurno).getTagName());
+                        log.printLogMessage(noNodo+": "+((Element)nodoEnTurno).getTagName());//DEPURACION
                         
                         //Identificando tag message
                         if(((Element)nodoEnTurno).getTagName().equalsIgnoreCase(prefijoWSDL + ":message") || ((Element)nodoEnTurno).getTagName().equalsIgnoreCase("message")){
-                            System.out.println("Index message[" + noNodo + "]");
+                            log.printLogMessage("Index message[" + noNodo + "]");//DEPURACION
                             extraerMessage_WSDL1(nodoEnTurno);
                         }                        
                     }   
@@ -211,10 +224,10 @@ public class WSDLExtractStructure {
             elementoMessage = (Element)nodoAExaminar;
             if(elementoMessage.getTagName().equalsIgnoreCase(prefijoWSDL + ":message") || elementoMessage.getTagName().equalsIgnoreCase("message")){
                 String mensaje = elementoMessage.getAttribute("name");
-                System.out.println("buscando operacion: " + mensaje);
+                log.printLogMessage("buscando operacion: " + mensaje);//DEPURACION
                 
                 for(int noOperacion=0; noOperacion<operaciones.size(); noOperacion++){
-                    System.out.println("Operacion:" + operaciones.get(noOperacion).getOperacion() + " MensajeIn:" + operaciones.get(noOperacion).getMensajeEntrada() + " MensajeOut:" + operaciones.get(noOperacion).getMensajeSalida());
+                    log.printLogMessage("Operacion:" + operaciones.get(noOperacion).getOperacion() + " MensajeIn:" + operaciones.get(noOperacion).getMensajeEntrada() + " MensajeOut:" + operaciones.get(noOperacion).getMensajeSalida());//DEPURACION
                     if(mensaje.equals(operaciones.get(noOperacion).getMensajeEntrada())){
                         rutaInsercion = operaciones.get(noOperacion).getOperacion() + " " + operaciones.get(noOperacion).getMensajeEntrada();
                     }else if(mensaje.equals(operaciones.get(noOperacion).getMensajeSalida())){
@@ -250,7 +263,8 @@ public class WSDLExtractStructure {
                                         }
 
                                         //Insertando nodo
-                                        operaciones.get(noOperacion).insertarNodo(rutaInsercion, nodo);System.out.println("Ruta de insercionOP:"+rutaInsercion);
+                                        operaciones.get(noOperacion).insertarNodo(rutaInsercion, nodo);
+                                        log.printLogMessage("Ruta de insercionOP:"+rutaInsercion);//DEPURACION
                                         
                                         //Si es desconocido extraer el tipo
                                         if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
@@ -273,7 +287,8 @@ public class WSDLExtractStructure {
                                         }
 
                                         //Insertando nodo
-                                        operaciones.get(noOperacion).insertarNodo(rutaInsercion, nodo);System.out.println("Ruta de insercionOP:"+rutaInsercion);
+                                        operaciones.get(noOperacion).insertarNodo(rutaInsercion, nodo);
+                                        log.printLogMessage("Ruta de insercionOP:"+rutaInsercion);//DEPURACION
                                         
                                         //Si es desconocido extraer el tipo
                                         if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
@@ -298,11 +313,12 @@ public class WSDLExtractStructure {
         NodeList nodos = nodoAExaminar.getChildNodes();
         //System.out.println("numero de elementos en portType:"+nodos.getLength());
         for(int noNodo = 0; noNodo<nodos.getLength(); noNodo++){
-            nodoEnTurno = nodos.item(noNodo);System.out.println("extraerPortType_WSDL1 nodo:" + noNodo);
+            nodoEnTurno = nodos.item(noNodo);
+            log.printLogMessage("extraerPortType_WSDL1 nodo:" + noNodo);//DEPURACION
             
             if(nodoEnTurno.getNodeType() == Node.ELEMENT_NODE){
                 Element elemento = (Element)nodoEnTurno;
-                System.out.println("Imprimiendo Nodo: "+ elemento.getTagName() + ">" + elemento.getNodeValue());
+                log.printLogMessage("Imprimiendo Nodo: "+ elemento.getTagName() + ">" + elemento.getNodeValue());//DEPURACION
                 
                 //Formando las raices de los nodos
                     if(elemento.getTagName().equalsIgnoreCase(prefijoWSDL + ":operation") || elemento.getTagName().equalsIgnoreCase("operation")){
@@ -342,7 +358,7 @@ public class WSDLExtractStructure {
         ElementoXMLSchema definicion;
         
         nombreDeTipo = removerPrefijo(nombreDeTipo);
-        System.out.println("BUSCANDO::::::::::::::::::::::::::::::::::::"+nombreDeTipo);
+        log.printLogMessage("BUSCANDO::::::::::::::::::::::::::::::::::::"+nombreDeTipo);//DEPURACION
         //Buscando la definicion en el conjunto de elementos complejos del esquema
         definicion = esquemaDeTipos.buscarTipoComplejo(nombreDeTipo);
         if(definicion!=null){
@@ -366,7 +382,7 @@ public class WSDLExtractStructure {
     private void extraerTipo(ElementoXMLSchema.TipoDeElementoXMLSchema tipoDeElemento, String nombreDeTipo, String rutaDeInsercion, int operacion){
         ElementoWSDL nodo;
         ElementoXMLSchema elementoEsquema;
-        System.out.println("Ruta de insercion:"+rutaDeInsercion);
+        log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
         elementoEsquema = buscarDefinicionDeTipo(nombreDeTipo);
         if(elementoEsquema != null){
             //Acciones para un elemento complejo
@@ -376,11 +392,11 @@ public class WSDLExtractStructure {
                         if(elementoEsquema.tipoComplejo_poeseeSubelementos()){
                             ComplexType complejo = elementoEsquema.getElementoComplejo(); //extraccion del elemento
                             for (SchemaComponent sc : ((ModelGroup) complejo.getModel()).getParticles()) {
-                                System.out.println(" -Particle Kind: " + sc.getClass().getSimpleName());
-                                System.out.println(" Particle Name: " + sc.getName());
-                                System.out.println(" Prefix: " + sc.getPrefix());
-                                System.out.println(" DataType: " + ((QName)sc.getProperty("type")).getQualifiedName() );
-                                System.out.println(" String: " + sc.getAsString());
+                                log.printLogMessage(" -Particle Kind: " + sc.getClass().getSimpleName());//DEPURACION
+                                log.printLogMessage(" Particle Name: " + sc.getName());//DEPURACION
+                                log.printLogMessage(" Prefix: " + sc.getPrefix());//DEPURACION
+                                log.printLogMessage(" DataType: " + ((QName)sc.getProperty("type")).getQualifiedName() );//DEPURACION
+                                log.printLogMessage(" String: " + sc.getAsString());//DEPURACION
 
                                 //Creando nodo a insertar
                                     String tipo;
@@ -408,7 +424,8 @@ public class WSDLExtractStructure {
                                 }
 
                                 //Insertando nodo
-                                operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);System.out.println("Ruta de insercion:"+rutaDeInsercion);
+                                operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
+                                log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
 
                                 //Recursion
                                 if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO) || nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO)){
@@ -423,7 +440,7 @@ public class WSDLExtractStructure {
                         if(elementoEsquema.tipoComplejo_tieneContenidoSimple()){
                             //Es extension
                             Extension ext = ((SimpleContent) elementoEsquema.getElementoComplejo().getModel()).getExtension();
-                            Log.print(Log.ANSI_GREEN, "QN:" + ext.getBasePN().getLocalName() + " prefijo:" + ext.getBasePN().getPrefix());
+                            log.printLogMessage("QN:" + ext.getBasePN().getLocalName() + " prefijo:" + ext.getBasePN().getPrefix());//DEPURACION
                             
                             String tipo;
                             nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, elementoEsquema.getNombreDeVariable());
@@ -446,7 +463,8 @@ public class WSDLExtractStructure {
                             }
 
                             //Insertando nodo
-                            operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);System.out.println("Ruta de insercion:"+rutaDeInsercion);
+                            operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
+                            log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
 
                             //Recursion
                             if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
@@ -481,7 +499,8 @@ public class WSDLExtractStructure {
                             }
 
                             //Insertando nodo
-                            operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);System.out.println("Ruta de insercion:"+rutaDeInsercion);
+                            operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
+                            log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
 
                             //Recursion
                             if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
@@ -496,12 +515,12 @@ public class WSDLExtractStructure {
                     
                     SimpleType tipoSimple = elementoEsquema.getElementoSimple();
                     
-                    System.out.println("    SimpleType Name: " + tipoSimple.getName());
-                    System.out.println("    SimpleType Restriction: " + tipoSimple.getRestriction());
-                    System.out.println("               -----------:Base:" + tipoSimple.getRestriction().getBase().getQualifiedName());
-                    System.out.println("               ----------:Prefix:" + tipoSimple.getRestriction().getBase().getPrefix());
-                    System.out.println("    SimpleType Union: " + tipoSimple.getUnion());
-                    System.out.println("    SimpleType List: " + tipoSimple.getList());
+                    log.printLogMessage("    SimpleType Name: " + tipoSimple.getName());//DEPURACION
+                    log.printLogMessage("    SimpleType Restriction: " + tipoSimple.getRestriction());//DEPURACION
+                    log.printLogMessage("               -----------:Base:" + tipoSimple.getRestriction().getBase().getQualifiedName());//DEPURACION
+                    log.printLogMessage("               ----------:Prefix:" + tipoSimple.getRestriction().getBase().getPrefix());//DEPURACION
+                    log.printLogMessage("    SimpleType Union: " + tipoSimple.getUnion());//DEPURACION
+                    log.printLogMessage("    SimpleType List: " + tipoSimple.getList());//DEPURACION
                     
                     //Creando nodo a insertar
                         String tipo, prefijo;
@@ -522,7 +541,8 @@ public class WSDLExtractStructure {
                         }
                         
                         //Insertando nodo
-                        operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);System.out.println("Ruta de insercion:"+rutaDeInsercion);
+                        operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
+                        log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
                         
                         if(prefijo!=null){
                             
@@ -548,12 +568,11 @@ public class WSDLExtractStructure {
                 if(elementoEsquema.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO)){
                     
                     com.predic8.schema.Element elemento = elementoEsquema.getElementoElement();
-                    //System.out.println("    Element Type Name: " + esquemaWSDL.getType(elemento.getType()).getName());
-                    //System.out.println("                 typo: "+((QName)elemento.getType()).getQualifiedName());
-                    System.out.println("              prefijo: "+elemento.getPrefix());
-                    System.out.println("    Element minoccurs: " + elemento.getMinOccurs());
-                    System.out.println("    Element maxoccurs: " + elemento.getMaxOccurs());
-                    System.out.println("  Schema del Elemento: " + elemento.getSchema().toString());
+
+                    log.printLogMessage("              prefijo: "+elemento.getPrefix());//DEPURACION
+                    log.printLogMessage("    Element minoccurs: " + elemento.getMinOccurs());//DEPURACION
+                    log.printLogMessage("    Element maxoccurs: " + elemento.getMaxOccurs());//DEPURACION
+                    log.printLogMessage("  Schema del Elemento: " + elemento.getSchema().toString());//DEPURACION
                     
                     //Creando nodo a insertar
                         String tipo = "DESCONOCIDO";
@@ -564,7 +583,7 @@ public class WSDLExtractStructure {
                             tipo = ((QName)elemento.getType()).getQualifiedName();
                             nodo.setTipoDeDato(tipo);
                         }else{
-                            System.err.println("Elemento " + elementoEsquema.getNombreDeVariable() + " no posee tipo");
+                            log.printLogErrorMessage("Elemento " + elementoEsquema.getNombreDeVariable() + " no posee tipo");//DEPURACION
                         }                       
                         nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO);
                         
@@ -574,7 +593,8 @@ public class WSDLExtractStructure {
                         }
                         
                         //Insertando nodo
-                        operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);System.out.println("Ruta de insercion:"+rutaDeInsercion);
+                        operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
+                        log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
 
                         //Recursion
                         if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO) || nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO)){
@@ -622,25 +642,52 @@ public class WSDLExtractStructure {
             }
         }
         return null;
-    }
+    }   
     
     
     public static void main(String[] args){
 
-        //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.xignite.com/xAnalysts.asmx?WSDL");
-        //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("https://api.networkip.net/jaduka/?WSDL");
         
-        //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
-        WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.xignite.com/xBATSLastSale.asmx?WSDL");//Direccion de Xmethod - http://www.xmethods.org/ve2/ViewListing.po;jsessionid=4g2EFxE845cgLvWrrPJxuswz?key=430207
         
-        //Obtención de los arboles del documento parseado por WSDLEXtractStructure
-            List<ArbolWSDL> estructuras;
-            estructuras = objetoPruebas.getArbolesDeOperaciones();
-            for(ArbolWSDL arbol:estructuras){
-                System.out.println("\nImprimiendo Arbol: " + arbol.getOperacion()+ " del servicio:" + arbol.getServicio());
-                arbol.imprimirArbol();
-                arbol.getSerializacionXML();
-            }   
-    }
-    
+        //Pruebas con un solo archivo WSDL
+        
+            //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.xignite.com/xAnalysts.asmx?WSDL");
+            //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("https://api.networkip.net/jaduka/?WSDL");
+
+            //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
+            WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.xignite.com/xBATSLastSale.asmx?WSDL");//Direccion de Xmethod - http://www.xmethods.org/ve2/ViewListing.po;jsessionid=4g2EFxE845cgLvWrrPJxuswz?key=430207
+            
+
+
+            //Obtención de los arboles del documento parseado por WSDLEXtractStructure
+                List<ArbolWSDL> estructuras;
+                estructuras = objetoPruebas.getArbolesDeOperaciones();
+                for(ArbolWSDL arbol:estructuras){
+                    System.out.println("\nImprimiendo Arbol: " + arbol.getOperacion()+ " del servicio:" + arbol.getServicio());
+                    arbol.imprimirArbol();
+                    arbol.getSerializacionXML();
+                }   
+            
+         
+         
+        /*
+        //Pruebas con varios archivos WSDL
+            WSDLExtractStructure objetoPruebas;
+            List<String> wsdls = Directorio.getNombresDeFicherosDeURL("http://www.comparadordeoperacioneswsdl.netne.net/WSDLInterfaces/wsdl", ".wsdl");
+            for(int wsdlNo = 0; wsdlNo<20; wsdlNo++){
+                
+                System.out.println("\n\n\n EXTRAYENDO WSDL[" + (wsdlNo+1) + "] " + wsdls.get(wsdlNo) + " \n\n\n");
+                
+                objetoPruebas = new WSDLExtractStructure(wsdls.get(wsdlNo));
+                List<ArbolWSDL> estructuras;
+                estructuras = objetoPruebas.getArbolesDeOperaciones();
+                for(ArbolWSDL arbol:estructuras){
+                    System.out.println("\nImprimiendo Arbol: " + arbol.getOperacion()+ " del servicio:" + arbol.getServicio());
+                    arbol.imprimirArbol();
+                    //arbol.getSerializacionXML();
+                }   
+            }  
+          */  
+    }    
+
 }

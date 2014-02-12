@@ -22,6 +22,7 @@ import com.predic8.wsdl.Definitions;
 import com.predic8.wsdl.WSDLParser;
 import groovy.xml.QName;
 import java.util.Hashtable;
+import jnr.utilities.Log;
 
 /**
  * Esta clase permite extraer los tipos definifos en el esquema xml proporcionado.
@@ -29,6 +30,9 @@ import java.util.Hashtable;
  * @author Jorge Náder Roa
  */
 public class XMLSchemaParser {
+    //Depuración
+    public Log log = new Log(true, true, Log.ANSI_PURPLE);
+    /////////////////////////////////////////////////
     
     public static final String XMLSCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
     
@@ -37,6 +41,11 @@ public class XMLSchemaParser {
     Hashtable<String, ElementoXMLSchema> complexTypes = new Hashtable<String, ElementoXMLSchema>();
     Hashtable<String, ElementoXMLSchema> simpleTypes = new Hashtable<String, ElementoXMLSchema>();
     Hashtable<String, ElementoXMLSchema> elements = new Hashtable<String, ElementoXMLSchema>();
+    
+    /**
+     * Instancia un objeto XMLSchemaParser vacio.
+     */
+    public XMLSchemaParser(){}
     
     
     /**
@@ -71,13 +80,12 @@ public class XMLSchemaParser {
      */
     private void extraccionDeElementos(Schema esquemaEnTurno){
         
-        System.out.println("Espacio de nombres:" + esquemaEnTurno.getTargetNamespace() + " Prefijo: " + esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()));
-        //System.out.println("Prefijo de xml schema: " + esquemaEnTurno.getPrefix(XMLSCHEMA_NS));
+        log.printLogMessage("Espacio de nombres:" + esquemaEnTurno.getTargetNamespace() + " Prefijo: " + esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()));//DEPURACION
 
         
         //Almacenamiento de los elementos complextype
         for(ComplexType tipoComplejo : esquemaEnTurno.getComplexTypes()){
-            System.out.println("[TC]" + tipoComplejo.getNamespaceUri() + ">" + tipoComplejo.getPrefix() + ":" + tipoComplejo.getName() );
+            log.printLogMessage("[TC]" + tipoComplejo.getNamespaceUri() + ">" + tipoComplejo.getPrefix() + ":" + tipoComplejo.getName() );//DEPURACION
             ElementoXMLSchema nuevoComplejo = new ElementoXMLSchema(tipoComplejo);
             nuevoComplejo.setPrefijoXMLSchema( esquemaEnTurno.getPrefix(XMLSCHEMA_NS).toString() );
             nuevoComplejo.setDatosDelEspacioDeNombresDelEsquema( esquemaEnTurno.getTargetNamespace(), esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()).toString() );
@@ -86,7 +94,7 @@ public class XMLSchemaParser {
         }
         //Almacenamiento de los elementos simpleType
         for(SimpleType tipoSimple : esquemaEnTurno.getSimpleTypes()){
-            System.out.println("[TS]" + tipoSimple.getNamespaceUri() + ">" + tipoSimple.getPrefix() + ":" + tipoSimple.getName() );
+            log.printLogMessage("[TS]" + tipoSimple.getNamespaceUri() + ">" + tipoSimple.getPrefix() + ":" + tipoSimple.getName() );//DEPURACION
             ElementoXMLSchema nuevoSimple = new ElementoXMLSchema(tipoSimple);
             nuevoSimple.setPrefijoXMLSchema( esquemaEnTurno.getPrefix(XMLSCHEMA_NS).toString() );
             nuevoSimple.setDatosDelEspacioDeNombresDelEsquema( esquemaEnTurno.getTargetNamespace(), esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()).toString() );
@@ -95,7 +103,7 @@ public class XMLSchemaParser {
         }
         //Almacenamientos de los elementos Element
         for(Element elemento : esquemaEnTurno.getElements()){
-            System.out.println("[E]" + elemento.getNamespaceUri() + ">" + elemento.getPrefix() + ":" + elemento.getName() );
+            log.printLogMessage("[E]" + elemento.getNamespaceUri() + ">" + elemento.getPrefix() + ":" + elemento.getName() );//DEPURACION
             ElementoXMLSchema nuevoElemento = new ElementoXMLSchema(elemento);
             nuevoElemento.setPrefijoXMLSchema( esquemaEnTurno.getPrefix(XMLSCHEMA_NS).toString() );
             nuevoElemento.setDatosDelEspacioDeNombresDelEsquema( esquemaEnTurno.getTargetNamespace(), esquemaEnTurno.getPrefix(esquemaEnTurno.getTargetNamespace()).toString() );
