@@ -31,7 +31,7 @@ import jnr.utilities.Log;
  */
 public class XMLSchemaParser {
     //Depuración
-    public Log log = new Log(true, true, Log.ANSI_PURPLE);
+    public Log log = new Log(false, true, Log.ANSI_PURPLE);
     /////////////////////////////////////////////////
     
     public static final String XMLSCHEMA_NS = "http://www.w3.org/2001/XMLSchema";

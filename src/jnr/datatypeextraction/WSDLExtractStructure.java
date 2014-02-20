@@ -39,7 +39,7 @@ import org.xml.sax.SAXException;
  */
 public class WSDLExtractStructure {
     //Depuración
-    public Log log = new Log(true, true, Log.ANSI_BLUE);
+    public Log log = new Log(false, true, Log.ANSI_BLUE);
     /////////////////////////////////////////////////
     
     
@@ -592,6 +592,11 @@ public class WSDLExtractStructure {
                             nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_PRIMITIVO);
                         }
                         
+                        //Modificando tipo de elemento desconocido
+                        if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
+                            operaciones.get(operacion).getNodo(rutaDeInsercion).setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO);
+                        }
+                        
                         //Insertando nodo
                         operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
                         log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
@@ -665,7 +670,8 @@ public class WSDLExtractStructure {
                 for(ArbolWSDL arbol:estructuras){
                     System.out.println("\nImprimiendo Arbol: " + arbol.getOperacion()+ " del servicio:" + arbol.getServicio());
                     arbol.imprimirArbol();
-                    arbol.getSerializacionXML();
+                    arbol.mostrarSerializacionRDF_xml();
+                    arbol.imprimirArbol();
                 }   
             
          
@@ -674,7 +680,7 @@ public class WSDLExtractStructure {
         //Pruebas con varios archivos WSDL
             WSDLExtractStructure objetoPruebas;
             List<String> wsdls = Directorio.getNombresDeFicherosDeURL("http://www.comparadordeoperacioneswsdl.netne.net/WSDLInterfaces/wsdl", ".wsdl");
-            for(int wsdlNo = 0; wsdlNo<20; wsdlNo++){
+            for(int wsdlNo = 0; wsdlNo<50; wsdlNo++){
                 
                 System.out.println("\n\n\n EXTRAYENDO WSDL[" + (wsdlNo+1) + "] " + wsdls.get(wsdlNo) + " \n\n\n");
                 

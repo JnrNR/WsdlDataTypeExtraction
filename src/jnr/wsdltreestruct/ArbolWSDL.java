@@ -9,13 +9,19 @@ import java.util.List;
 import java.util.StringTokenizer;
 import jnr.datatypeextraction.ElementoWSDL;
 import jnr.datatypeextraction.InterfazElementoWSDL;
-import jnr.rdfmatcher.RDFVocabulary;
+import jnr.rdfwsdloperationsmatcher.RDFVocabulary;
+import jnr.utilities.Log;
 
 /**
  * 
  * @author Jorge Náder Roa
  */
 public class ArbolWSDL {
+    //Depuración
+    public Log log = new Log(true, true, Log.ANSI_BOLD_GREEN);
+    /////////////////////////////////////////////////
+    
+    
     private String RAMIFICACION = "+";
     private String HOJA = "-";
     
@@ -296,6 +302,7 @@ public class ArbolWSDL {
                     setTriplets(nodoEnTurno, ramaEnTurno.getProfundidad());
                 }else{
                     imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), RAMIFICACION);
+                    log.printLogMessage("Hijos:"+nodoEnTurno.getNumeroDeHijos());//DEPURACION
                 }
                 
                 //Explorar la rama referenciada
@@ -304,6 +311,7 @@ public class ArbolWSDL {
             }else{//Nodo sin descendencia
                 if(!recorridoRDF){
                     imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), HOJA);
+                    log.printLogMessage("Hijos:"+nodoEnTurno.getNumeroDeHijos());//DEPURACION
                 }
                 
             }
@@ -318,16 +326,58 @@ public class ArbolWSDL {
         
     }
     
-    public void getSerializacionXML(){//Requiere implementacion con una variación del método recorreArbol
+    private void makeRDFmodel(){//Requiere implementacion con una variación del método recorreArbol
         modeloRDF = ModelFactory.createDefaultModel();
         
         //Inicializa el metodo desde el contenedor raiz(0) y la ramaRaiz(0) 
         recorreArbol(tronco.get(0).get(0), true);
         
+    }
+    
+    public Model getRDFModel(){
+        if(modeloRDF == null){
+            makeRDFmodel();
+        }
+        return modeloRDF;
+    }
+    
+    public void mostrarSerializacionRDF_xml(){
+        if(modeloRDF == null){
+            makeRDFmodel();
+        }
+        parametrizarArbol(tronco.get(0).get(0));
+        
         //Escritura RDF
         modeloRDF.write(System.out);
+    }
+    
+    /**
+     * Asign un valor al tameño de hijos que tiene cada nodo.
+     */
+    private void parametrizarArbol(Rama ramaEnTurno){
+        //Variables Auxiliares
+        Nodo nodoEnTurno;    
+        int noNodos = ramaEnTurno.getNodos().size();
+        int noHijosNodoEnTurno;
+        
+        for(int nodo=0; nodo<noNodos;nodo++){
+            nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
+            if(nodoEnTurno.getRamaDescendiente()!= -1){
+                //Tiene hijos
+                noHijosNodoEnTurno = tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()).getNodos().size();
+                nodoEnTurno.setNumeroDeHijos(noHijosNodoEnTurno);
+                
+                //Explorar la rama referenciada
+                parametrizarArbol(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()));
+            }else{
+                //No tiene hijos
+                nodoEnTurno.setNumeroDeHijos(0);
+            }
+            
+        }
         
     }
+    
     
     public String getServicio(){
         return servicio;

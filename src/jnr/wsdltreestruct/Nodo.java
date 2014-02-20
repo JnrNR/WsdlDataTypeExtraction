@@ -10,6 +10,8 @@ import jnr.datatypeextraction.InterfazElementoWSDL;
 class Nodo implements InterfazElementoWSDL {
         
         private int ramaDescendiente = -1;
+        private int numeroDeHijos = -1;
+        
         private ElementoWSDL nodo; 
         
         Nodo(ElementoWSDL nodo){
@@ -26,6 +28,14 @@ class Nodo implements InterfazElementoWSDL {
         
         public int getRamaDescendiente(){
             return ramaDescendiente;
+        }
+        
+        public int getNumeroDeHijos(){
+            return numeroDeHijos;
+        }
+        
+        public void setNumeroDeHijos(int numeroDeHijos){
+            this.numeroDeHijos = numeroDeHijos;
         }
 
         @Override
