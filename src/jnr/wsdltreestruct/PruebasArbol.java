@@ -2,11 +2,19 @@
 
 package jnr.wsdltreestruct;
 
+import java.util.ArrayList;
+import java.util.List;
 import jnr.datatypeextraction.ElementoWSDL;
 
 
 public class PruebasArbol {
     
+    
+    /**
+     * 
+     * 
+     * @param args 
+     */
     public static void main(String[] args){
         
         ElementoWSDL raiz = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.OPERACION, "Raiz");
@@ -22,16 +30,17 @@ public class PruebasArbol {
         raizN2.setTipoDeDato("int");
         
         ArbolWSDL arbol = new ArbolWSDL(raiz, "ServicioPrueba");
+        arbol.insertarNodo("Raiz", raizN2);
         arbol.insertarNodo("Raiz", raizN1);
         arbol.insertarNodo("Raiz N1", raizN1E1);
         arbol.insertarNodo("Raiz N1", raizN1E2);
         arbol.insertarNodo("Raiz N1", raizN1N1);
         arbol.insertarNodo("Raiz N1 N1", raizN1N1E1);
-        arbol.insertarNodo("Raiz", raizN2);
         
         
-        arbol.imprimirArbol();
-                
+        //arbol.imprimirArbol();
+        arbol.mostrarSerializacionRDF_xml();
+        
     }
     
 }

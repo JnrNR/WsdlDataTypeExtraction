@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
-import jnr.utilities.Directorio;
 import jnr.utilities.Log;
 import jnr.wsdltreestruct.ArbolWSDL;
 import org.w3c.dom.Document;
@@ -39,7 +38,7 @@ import org.xml.sax.SAXException;
  */
 public class WSDLExtractStructure {
     //Depuración
-    public Log log = new Log(false, true, Log.ANSI_BLUE);
+    public Log log = new Log(false, false, Log.ANSI_BLUE);
     /////////////////////////////////////////////////
     
     
@@ -68,7 +67,11 @@ public class WSDLExtractStructure {
     
     private List<ArbolWSDL> operaciones = new ArrayList<ArbolWSDL>();
     
-    
+    /**
+     * Constructor de la clase, recibe como parametro la direccion Web o local del elemento WSDL del que se requiere 
+     * extraer operaciones.
+     * @param WSDL_uri Recibe una cadena con la ruta local o Web del elemento WSDL.
+     */
     public WSDLExtractStructure(String WSDL_uri){
         //Obtención del arbol DOM del documento
             try {
@@ -99,14 +102,27 @@ public class WSDLExtractStructure {
         
     }
     
+    /**
+     * Regresa la versión del documento WSDL<br>
+     * <b>Posibles versiones:</b> 1, 2.
+     * @return Versión WSDL.
+     */
     public int getVersionWSDL(){
         return versionWSDL;
     }
     
+    /**
+     * Lista las operaciones encontradas en el archivo WSDL, a través de estructuras de tipo
+     * ArbolWSDL.
+     * @return List&#60;ArbolWSDL&#62; Una lista con las estructuras de arbol de todas las operaciones encontradas.
+     */
     public List<ArbolWSDL> getArbolesDeOperaciones(){
         return operaciones;
     }
     
+    /**
+     * Genera una estructura ArbolWSDL para cada operacion encontrada en el archivo WSDL.
+     */
     private void extraerArbolesDeOperaciones(){
         
         switch(versionWSDL){
@@ -661,7 +677,7 @@ public class WSDLExtractStructure {
 
             //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.thomas-bayer.com/axis2/services/BLZService?wsdl");
             WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("http://www.xignite.com/xBATSLastSale.asmx?WSDL");//Direccion de Xmethod - http://www.xmethods.org/ve2/ViewListing.po;jsessionid=4g2EFxE845cgLvWrrPJxuswz?key=430207
-            
+            //WSDLExtractStructure objetoPruebas = new WSDLExtractStructure("D:\\CINVESTAV\\Tesis\\0_Argentina_CinemaData.wsdl");
 
 
             //Obtención de los arboles del documento parseado por WSDLEXtractStructure

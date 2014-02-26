@@ -40,6 +40,15 @@ class Rama{
             return rama;
         }
         
+        public void setRamaPorCopia(Rama ramaNueva){
+            ramaAntecesora = ramaNueva.getRamaAntecesora();
+            nodoAntecesor = ramaNueva.getNodoAntecesor();
+            profundidad = ramaNueva.getProfundidad();
+            id = ramaNueva.getId();
+
+            rama = ramaNueva.getNodos();    
+        }
+        
         public int getNodoAntecesor(){
             return nodoAntecesor;
         }

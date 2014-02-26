@@ -76,7 +76,7 @@ public class RDFMatcher {
             System.out.println("\nImprimiendo Arbol: " + arbol.getOperacion()+ " del servicio:" + arbol.getServicio());
             arbol.imprimirArbol();
             arbol.mostrarSerializacionRDF_xml();
-            
+            arbol.imprimirArbol();
             log.printLogMessage("Comapacion entre:" + operacionesWSDL.get(0).getOperacion() + " y " + arbol.getOperacion() +"[" + RDFMatcher.matchRDFModels(primerrdf, arbol.getRDFModel()) + "]");
             
         }  

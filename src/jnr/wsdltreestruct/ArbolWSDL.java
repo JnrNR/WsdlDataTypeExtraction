@@ -346,13 +346,17 @@ public class ArbolWSDL {
             makeRDFmodel();
         }
         parametrizarArbol(tronco.get(0).get(0));
-        
+        imprimirArbol();
+        ordenarArbol();
+        imprimirArbol();
         //Escritura RDF
-        modeloRDF.write(System.out);
+        //modeloRDF.write(System.out);
+        
+        
     }
     
     /**
-     * Asign un valor al tameño de hijos que tiene cada nodo.
+     * Obtiene la cantidad de hijos que posee cada nodo y las almacena en la variable numeroDeHijos de cada objeto nodo.
      */
     private void parametrizarArbol(Rama ramaEnTurno){
         //Variables Auxiliares
@@ -377,6 +381,93 @@ public class ArbolWSDL {
         }
         
     }
+    
+    public void NodosQuicksort(int A[][], int izq, int der) { 
+
+        int pivote = A[0][izq]; // tomamos primer elemento como pivote
+        int acarreoDelPivote = A[1][izq];
+        
+        int i = izq; // i realiza la búsqueda de izquierda a derecha
+        int j = der; // j realiza la búsqueda de derecha a izquierda
+        int aux;
+        int auxDeAcarreo;
+
+        while(i<j){            // mientras no se crucen las búsquedas
+            while(A[0][i]<=pivote && i<j) i++; // busca elemento mayor que pivote
+                while(A[0][j]>pivote) j--;     // busca elemento menor que pivote
+                    if (i<j) {                 // si no se han cruzado                      
+                        aux = A[0][i];         // los intercambia
+                        auxDeAcarreo = A[1][i];
+                        
+                        A[0][i] = A[0][j]; 
+                        A[1][i] = A[1][j];
+                        
+                        A[0][j] = aux;
+                        A[1][j] = auxDeAcarreo;
+                    } 
+        } 
+        A[0][izq] = A[0][j]; // se coloca el pivote en su lugar de forma que tendremos
+        A[1][izq] = A[1][j];
+        
+        A[0][j] = pivote; // los menores a su izquierda y los mayores a su derecha
+        A[1][j] = acarreoDelPivote;
+        if(izq<j-1)
+            NodosQuicksort(A,izq,j-1); // ordenamos subarray izquierdo
+        if(j+1 <der)
+            NodosQuicksort(A,j+1,der); // ordenamos subarray derecho
+    }
+    
+    
+    /**
+     * Ordena todos los nodos de una rama en base al numero de hijos que estos poseen, 
+     * ordenando de izquierda a derecha los nodos con mayor numero de hijos.
+     * @param rama Rama a ordenar.
+     * @return Rama ordenada
+     */
+    private Rama ordenarRama(Rama rama){
+        int[][] arregloNodos;
+        int noDeNodos = rama.getNodos().size();
+        arregloNodos = new int[2][noDeNodos];
+        
+        int i;
+        for(i=0; i<noDeNodos; i++){
+            //Almacenando posicion anterior
+                arregloNodos[1][i] = i;
+            //Almacenando numero de hijos
+                arregloNodos[0][i] = rama.getNodos().get(i).getNumeroDeHijos();
+        }
+        
+        
+        ////Ordenamiento
+            NodosQuicksort(arregloNodos, 0, noDeNodos-1);
+        ////
+        
+        Rama ramaOrdenada = new Rama(rama.getId(), rama.getProfundidad(), rama.getRamaAntecesora(), rama.getNodoAntecesor());
+        int anteriorPosicion;
+        
+        //Ingresando los nodos ordenados a la nueva rama en forma decreciente
+        for(i=(noDeNodos-1); 0<=i; i--){
+            anteriorPosicion = arregloNodos[1][i];
+            ramaOrdenada.insertarNodo(rama.getNodos().get(anteriorPosicion));
+        }
+        
+        return ramaOrdenada;
+    }
+    
+    /**
+     * Ordena de izquierda a derecha los nodos con mayor numero de hijos.<br>
+     * El rodenamiento se realiza para todas las ramas del arbol.
+     */
+    private void ordenarArbol(){
+        
+        for(int nivel=0; nivel<tronco.size(); nivel++){
+            for(int rama=0; rama<tronco.get(nivel).size(); rama++){
+                tronco.get(nivel).get(rama).setRamaPorCopia(ordenarRama(tronco.get(nivel).get(rama)));
+            }
+        }
+        
+    }
+    
     
     
     public String getServicio(){
