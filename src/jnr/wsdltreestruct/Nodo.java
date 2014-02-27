@@ -11,6 +11,7 @@ class Nodo implements InterfazElementoWSDL {
         
         private int ramaDescendiente = -1;
         private int numeroDeHijos = -1;
+        private int peso = -1;
         
         private ElementoWSDL nodo; 
         
@@ -36,6 +37,14 @@ class Nodo implements InterfazElementoWSDL {
         
         public void setNumeroDeHijos(int numeroDeHijos){
             this.numeroDeHijos = numeroDeHijos;
+        }
+        
+        public void setPeso(int peso){
+            this.peso = peso;
+        }
+        
+        public int getPeso(){
+            return peso;
         }
 
         @Override

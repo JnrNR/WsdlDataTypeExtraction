@@ -302,7 +302,7 @@ public class ArbolWSDL {
                     setTriplets(nodoEnTurno, ramaEnTurno.getProfundidad());
                 }else{
                     imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), RAMIFICACION);
-                    log.printLogMessage("Hijos:"+nodoEnTurno.getNumeroDeHijos());//DEPURACION
+                    log.printLogMessage("Hijos:"+nodoEnTurno.getNumeroDeHijos() + " Peso:" + nodoEnTurno.getPeso());//DEPURACION
                 }
                 
                 //Explorar la rama referenciada
@@ -311,7 +311,7 @@ public class ArbolWSDL {
             }else{//Nodo sin descendencia
                 if(!recorridoRDF){
                     imprimirNodo(nodoEnTurnoDatos, ramaEnTurno.getProfundidad(), HOJA);
-                    log.printLogMessage("Hijos:"+nodoEnTurno.getNumeroDeHijos());//DEPURACION
+                    log.printLogMessage("Hijos:"+nodoEnTurno.getNumeroDeHijos() + " Peso:" + nodoEnTurno.getPeso());//DEPURACION
                 }
                 
             }
@@ -348,6 +348,7 @@ public class ArbolWSDL {
         parametrizarArbol(tronco.get(0).get(0));
         imprimirArbol();
         ordenarArbol();
+        pesarArbol(tronco.get(0).get(0).getNodos().get(0), 0);
         imprimirArbol();
         //Escritura RDF
         //modeloRDF.write(System.out);
@@ -466,8 +467,23 @@ public class ArbolWSDL {
             }
         }
         
-    }
+    }    
     
+    /**
+     * Obtiene el peso de un arbol.<br>
+     * El peso de un nodo es la cantidad de nodos que posee el subarbol cuya raiz es el mismo nodo.
+     */
+    private int pesarArbol(Nodo nodo, int profundidad){
+        int pesoDelNodo, pesoHijos = 0;
+        
+        for(int nodoHijo=0; nodoHijo<nodo.getNumeroDeHijos(); nodoHijo++){
+            pesoHijos = pesoHijos + pesarArbol(tronco.get(profundidad+1).get(nodo.getRamaDescendiente()).getNodos().get(nodoHijo), profundidad+1);
+        }
+        
+        pesoDelNodo = 1 + pesoHijos;
+        nodo.setPeso(pesoDelNodo);
+        return pesoDelNodo;
+    }
     
     
     public String getServicio(){
