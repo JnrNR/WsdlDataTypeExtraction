@@ -5,7 +5,7 @@ package jnr.datatypeextraction;
 
 public class ElementoWSDL extends ElementoXMLSchema implements InterfazElementoWSDL {
     
-    public enum TipoDeElementoWSDL {OPERACION, MENSAJE_ENTRADA, MENSAJE_SALIDA, TIPO}
+    public enum TipoDeElementoWSDL {OPERACION, MENSAJE_ENTRADA, MENSAJE_SALIDA, TIPO, ESTRUCTURA}
         
     private String nombre;
     private String prefijo;

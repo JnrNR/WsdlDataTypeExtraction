@@ -33,6 +33,8 @@ public class ArbolWSDL {
     private String mensajeEntrada;
     private String mensajeSalida;
     
+    private List<Integer> vectorCaracteristico;
+    
     
     public ArbolWSDL(ElementoWSDL elementoRaiz, String servicio){
         tronco = new ArrayList<>();
@@ -42,6 +44,30 @@ public class ArbolWSDL {
         List<Rama> raizContenedor = new ArrayList<>();
         Rama ramaRaiz = new Rama(0,0,0,0);
         ramaRaiz.insertarNodo( new Nodo(elementoRaiz) );
+        
+        raizContenedor.add(ramaRaiz);
+        tronco.add(raizContenedor);
+        
+    }
+    /**
+     * para super arboles.
+     * @param elementoRaiz
+     * @param servicio
+     * @param noHijos
+     * @param peso 
+     */
+    private ArbolWSDL(ElementoWSDL elementoRaiz, String servicio, int noHijos, int peso){
+        tronco = new ArrayList<>();
+        operacion = elementoRaiz.getNombre();
+        this.servicio = servicio;
+        
+        List<Rama> raizContenedor = new ArrayList<>();
+        Rama ramaRaiz = new Rama(0,0,0,0);
+        Nodo nodoRaiz = new Nodo(elementoRaiz, false);
+        nodoRaiz.setNumeroDeHijos(noHijos);
+        nodoRaiz.setPeso(peso);
+        
+        ramaRaiz.insertarNodo( nodoRaiz );
         
         raizContenedor.add(ramaRaiz);
         tronco.add(raizContenedor);
@@ -133,6 +159,90 @@ public class ArbolWSDL {
         
         
     }
+
+    /**
+     * Para super arboles.
+     * @param rutaInsercion
+     * @param nuevoNodo
+     * @param nodoComplementario
+     * @param noHijos
+     * @param peso 
+     */
+    private void insertarSuperNodo(String rutaInsercion, ElementoWSDL nuevoNodo, boolean nodoComplementario, int noHijos, int peso){
+        StringTokenizer tokenizerRuta = new StringTokenizer(rutaInsercion);
+        String elementoRuta;
+        
+        Rama ramaEnTurno = tronco.get(0).get(0);
+        Nodo nodoEnTurno;
+        InterfazElementoWSDL nodoEnTurnoDatos;
+        
+        while(tokenizerRuta.hasMoreTokens()){
+            elementoRuta = tokenizerRuta.nextToken(); //Extraemos uno de los elementos de la ruta
+            
+            for(int nodo=0; nodo<ramaEnTurno.getNodos().size(); nodo++){
+                nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
+                nodoEnTurnoDatos = (InterfazElementoWSDL)nodoEnTurno;
+                
+                //Determinar si el token extraido de la rutaInsercion corresponde con el nombre del nodo en turno.
+                //Si se encuentra una igualdad entre el nombre del nodo y el token, el nodo en turno es parte de la ruta.
+                if(elementoRuta.equals(nodoEnTurnoDatos.getNombre())){//El nodo pertenece a la ruta
+                    
+                    //Verificando que exista la ruta de inserción
+                    //Verificando que el nodo encontrado poseea una rama descendiente y que existan mas tokens en la ruta
+                    if(nodoEnTurno.getRamaDescendiente()!=-1 && tokenizerRuta.hasMoreTokens()){//El nodo posee rama descendiente y mas tokens
+                        //Actualizar siguiente rama
+                        int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
+                        ramaEnTurno = tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente());
+                        
+                    }else if(nodoEnTurno.getRamaDescendiente()==-1 && !tokenizerRuta.hasMoreTokens()){//Se encontro la ruta completa y no existe la rama descendietne
+                        //Determinar si ya existe el contenedor del siguiente nivel de profundidad y si no existe crearlo.
+                        int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
+                        if(!(nuevaProfundidad<tronco.size())){
+                            //Se crea el contenedor de ramas del siguiente nivel y se inserta en el tronco
+                            List<Rama> nivelContenedor = new ArrayList<>();
+                            tronco.add(nivelContenedor);
+                        }
+                        //Se agrega el nuevo nodo
+                        
+                        //Creando la nueva rama a insertar
+                        Rama nuevaRama = new Rama(tronco.get(nuevaProfundidad).size(),nuevaProfundidad,ramaEnTurno.getId(),nodo);
+                        //Referenciando la nueva rama en el nodo en turno
+                        nodoEnTurno.setRamaDescendiente(nuevaRama.getId());
+                        //Agregndo el nuevo nodo a la rama
+                        Nodo superNodo = new Nodo(nuevoNodo, nodoComplementario);
+                        superNodo.setCodigoEstructural(nuevaProfundidad, nuevaRama.getId(),0);
+                        superNodo.setNumeroDeHijos(noHijos);
+                        superNodo.setPeso(peso);
+                        nuevaRama.insertarNodo(superNodo);
+                        //Insertando la rama en el contenedor
+                        tronco.get(nuevaProfundidad).add(nuevaRama);
+                        //listo
+                                              
+                        
+                    }else if(nodoEnTurno.getRamaDescendiente()!=-1 && !tokenizerRuta.hasMoreTokens()){//Se encontro la ruta completa y ya existe la rama descendiente
+                        int nuevaProfundidad = ramaEnTurno.getProfundidad() + 1;
+                        
+                        //Agregndo el nuevo nodo a la rama ya referenciada por el nodo en turno
+                        Nodo superNodo = new Nodo(nuevoNodo, nodoComplementario);
+                        superNodo.setCodigoEstructural(nuevaProfundidad, nodoEnTurno.getRamaDescendiente(), tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente()).getNodos().size());
+                        superNodo.setNumeroDeHijos(noHijos);
+                        superNodo.setPeso(peso);
+                        tronco.get(nuevaProfundidad).get(nodoEnTurno.getRamaDescendiente()).insertarNodo(superNodo);
+                        //listo
+                        
+                    
+                    }else{//No existe ruta de insercion 
+                        System.err.println("No existe la ruta de inserción");
+                    }
+                    
+                    break;
+                }
+            }
+        }
+        
+        
+    }
+    
     
     public ElementoWSDL getNodo(String rutaDelNodo){
         StringTokenizer tokenizerRuta = new StringTokenizer(rutaDelNodo);
@@ -484,7 +594,160 @@ public class ArbolWSDL {
         nodo.setPeso(pesoDelNodo);
         return pesoDelNodo;
     }
+        
     
+    public static ArbolWSDL[] generarSuperArboles(ArbolWSDL arbolA, ArbolWSDL arbolB){
+        String rutaRaiz = "N0R0n0";
+        
+        ArbolWSDL[] superArboles = new ArbolWSDL[2];
+        ArbolWSDL superA = new ArbolWSDL( new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, rutaRaiz) , "SuperArbolA", arbolA.getTronco().get(0).get(0).getNodos().get(0).getNumeroDeHijos(), arbolA.getTronco().get(0).get(0).getNodos().get(0).getPeso());
+        ArbolWSDL superB = new ArbolWSDL( new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, rutaRaiz) , "SuperArbolB", arbolB.getTronco().get(0).get(0).getNodos().get(0).getNumeroDeHijos(), arbolB.getTronco().get(0).get(0).getNodos().get(0).getPeso());
+        
+        generarSuperRamas(superA, superB, arbolA, arbolB, arbolA.getTronco().get(1).get(0), arbolB.getTronco().get(1).get(0), rutaRaiz);    
+    
+        superArboles[0] = superA;
+        superArboles[1] = superB;
+        
+        return superArboles;
+    }
+    private static void generarSuperRamas(ArbolWSDL superArbolA, ArbolWSDL superArbolB, ArbolWSDL arbolA, ArbolWSDL arbolB, Rama ramaA, Rama ramaB, String rutaInsercion){
+
+        boolean ramaAnula = false, ramaBnula = false;
+        int noNodosA = 0, noNodosB = 0;
+        int ramaDescendienteA, ramaDescendienteB;
+        
+        if(ramaA==null){
+            ramaAnula = true;
+            noNodosB = ramaB.getNodos().size();
+        }else if(ramaB==null){
+            ramaBnula = true;
+            noNodosA = ramaA.getNodos().size();
+        }else{
+            noNodosA = ramaA.getNodos().size();
+            noNodosB = ramaB.getNodos().size();
+        }
+        
+        
+        int nivel = ramaA!=null? ramaA.getProfundidad() : ramaB.getProfundidad();
+        int idRama;
+        if(nivel>=superArbolA.getTronco().size()){
+            idRama = 0;
+        }else{
+            idRama = superArbolA.getTronco().get(nivel).size();
+        }
+        
+        //Verificar quue rama tiene la mayor cantidad de nodos y crearla en los superarboles
+        int noNodosSuperArbol = Math.max(noNodosA, noNodosB);
+        
+        for(int noNuevoNodo=0; noNuevoNodo<noNodosSuperArbol; noNuevoNodo++){
+            //Agregando los nodos a al superArbolA y superArbolB
+                String nombreDelNuevoNodo = "N"+nivel+"R"+idRama+"n"+noNuevoNodo;
+                if(noNuevoNodo<noNodosA){
+                    superArbolA.insertarSuperNodo(rutaInsercion, new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, nombreDelNuevoNodo), false, ramaA.getNodos().get(noNuevoNodo).getNumeroDeHijos(), ramaA.getNodos().get(noNuevoNodo).getPeso());
+                }else{
+                    superArbolA.insertarSuperNodo(rutaInsercion, new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, nombreDelNuevoNodo), true, 0, 0);
+                }
+                if(noNuevoNodo<noNodosB){
+                    superArbolB.insertarSuperNodo(rutaInsercion, new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, nombreDelNuevoNodo), false, ramaB.getNodos().get(noNuevoNodo).getNumeroDeHijos(), ramaB.getNodos().get(noNuevoNodo).getPeso());
+                }else{
+                    superArbolB.insertarSuperNodo(rutaInsercion, new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, nombreDelNuevoNodo), true, 0, 0);
+                }
+            //Recursion
+                if(!ramaAnula && !ramaBnula){
+                    ramaDescendienteA = ramaA.getNodos().get(noNuevoNodo).getRamaDescendiente();
+                    ramaDescendienteB = ramaB.getNodos().get(noNuevoNodo).getRamaDescendiente();
+                    //Si nodo de rama A y rama B tienen hijos
+                    if(ramaDescendienteA!=-1 && ramaDescendienteB!=-1){
+                        generarSuperRamas(superArbolA, superArbolB, arbolA, arbolB, arbolA.getTronco().get(nivel+1).get(ramaDescendienteA), arbolB.getTronco().get(nivel+1).get(ramaDescendienteB), rutaInsercion + " " + nombreDelNuevoNodo);
+                    }
+                    //Si nodo de la rama A tiene hijo y el de la rama B no
+                    else if(ramaDescendienteA!=-1){
+                        generarSuperRamas(superArbolA, superArbolB, arbolA, arbolB, arbolA.getTronco().get(nivel+1).get(ramaDescendienteA), null, rutaInsercion + " " + nombreDelNuevoNodo);
+                    }
+                    //Si nodo de la rama B tiene hijo y el de la rama A no
+                    else if(ramaDescendienteB!=-1){
+                        generarSuperRamas(superArbolA, superArbolB, arbolA, arbolB, null, arbolB.getTronco().get(nivel+1).get(ramaDescendienteB), rutaInsercion + " " + nombreDelNuevoNodo);
+                    }
+                }else if(ramaAnula && !ramaBnula){
+                    ramaDescendienteB = ramaB.getNodos().get(noNuevoNodo).getRamaDescendiente();
+                    //Si nodo de la rama B tiene hijo
+                    if(ramaDescendienteB!=-1){
+                        generarSuperRamas(superArbolA, superArbolB, arbolA, arbolB, null, arbolB.getTronco().get(nivel+1).get(ramaDescendienteB), rutaInsercion + " " + nombreDelNuevoNodo);
+                    }
+                }else if(!ramaAnula && ramaBnula){
+                    ramaDescendienteA = ramaA.getNodos().get(noNuevoNodo).getRamaDescendiente();
+                    //Si nodo de la rama A tiene hijo
+                    if(ramaDescendienteA!=-1){
+                        generarSuperRamas(superArbolA, superArbolB, arbolA, arbolB, arbolA.getTronco().get(nivel+1).get(ramaDescendienteA), null, rutaInsercion + " " + nombreDelNuevoNodo);
+                    }
+                }
+        }
+        
+        
+    }
+    
+    private void obtenerValoresCaracteristicos(Rama ramaEnTurno){
+        //Variables Auxiliares
+        Nodo nodoEnTurno;
+        
+        int noNodos = ramaEnTurno.getNodos().size();
+ 
+        
+        for(int nodo=0;nodo<noNodos;nodo++){//Extrae todos los nodos de una rama
+            nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
+            
+            if(nodoEnTurno.getRamaDescendiente()!=-1){//Nodo con descenencia (imprime el nodo y analiza la descendencia)
+
+                    vectorCaracteristico.add(nodoEnTurno.getNumeroDeHijos());
+                    vectorCaracteristico.add(nodoEnTurno.getPeso());
+                
+                //Explorar la rama referenciada
+                obtenerValoresCaracteristicos(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()));
+                
+            }else{//Nodo sin descendencia
+
+                    vectorCaracteristico.add(nodoEnTurno.getNumeroDeHijos());
+                    vectorCaracteristico.add(nodoEnTurno.getPeso());
+                
+            }
+        }
+        
+    }
+    
+    public void imprimirVectorCaracteristico(){
+        log.printLogMessage(vectorCaracteristico.toString());
+    }
+    
+    public List<Integer> getVectorCaracteristico(){
+        if(vectorCaracteristico==null){
+            vectorCaracteristico = new ArrayList<Integer>();
+            obtenerValoresCaracteristicos(tronco.get(0).get(0));
+        } 
+        
+        return  vectorCaracteristico;
+    }
+    
+    public static float calcularFactorDeCorrelacion(List<Integer> vectorA, List<Integer> vectorB){
+        float factorDeCorrelacion=0;
+        
+        if(vectorA.size() == vectorB.size()){
+            //Realizando correlación
+            int rxx=0, ryy=0, rxy=0; 
+            
+            for(int i=0; i<vectorA.size(); i++){
+                rxx += vectorA.get(i)*vectorA.get(i);
+                ryy += vectorB.get(i)*vectorB.get(i);
+                rxy += vectorA.get(i)*vectorB.get(i);
+            }
+            
+            factorDeCorrelacion = (float) (rxy / Math.sqrt(rxx*ryy));
+            
+        }else{
+            //log.printLogErrorMessage("No es posible calcular el factor de correlación de los vectores caracteristicos (longitudes dispares).");
+        }
+        
+        return factorDeCorrelacion;
+    }
     
     public String getServicio(){
         return servicio;
@@ -497,6 +760,10 @@ public class ArbolWSDL {
     }
     public String getMensajeSalida(){
         return mensajeSalida;
+    }
+    
+    public List<List<Rama>> getTronco(){
+        return tronco;
     }
     
     public int getAltura(){

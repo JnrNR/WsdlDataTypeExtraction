@@ -9,14 +9,29 @@ import jnr.datatypeextraction.InterfazElementoWSDL;
 
 class Nodo implements InterfazElementoWSDL {
         
+        private String codigoEstructural;
         private int ramaDescendiente = -1;
         private int numeroDeHijos = -1;
         private int peso = -1;
         
+        private boolean nodoComplementario = false;
+        
         private ElementoWSDL nodo; 
+        
         
         Nodo(ElementoWSDL nodo){
             this.nodo = nodo;
+        }
+        
+
+        Nodo(ElementoWSDL nodo, boolean nodoComplementario){
+            this.nodo = nodo;
+            
+            this.nodoComplementario = nodoComplementario;
+            if(nodoComplementario){
+                numeroDeHijos = 0;
+            }
+            
         }
         
         public void setRamaDescendiente(int noRama){
@@ -36,15 +51,32 @@ class Nodo implements InterfazElementoWSDL {
         }
         
         public void setNumeroDeHijos(int numeroDeHijos){
-            this.numeroDeHijos = numeroDeHijos;
+            if(!nodoComplementario){
+                this.numeroDeHijos = numeroDeHijos;
+            }
         }
         
         public void setPeso(int peso){
-            this.peso = peso;
+            if(!nodoComplementario){
+                this.peso = peso;
+            }
         }
         
         public int getPeso(){
             return peso;
+        }
+        
+       
+        public boolean esComplementario(){
+            return nodoComplementario;
+        }
+        
+        public void setCodigoEstructural(int nivel, int noRama, int noNodo){
+            codigoEstructural = "N"+nivel+"R"+noRama+"n"+noNodo;
+        }
+        
+        public String getCodigoEstructural(){
+            return codigoEstructural;
         }
 
         @Override

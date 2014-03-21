@@ -13,7 +13,7 @@ import jnr.wsdltreestruct.ArbolWSDL;
  */
 public class RDFMatcher {
     //Depuración
-    public Log log = new Log(true, true, Log.ANSI_GREEN);
+    public Log log = new Log(true, true, Log.ANSI_PURPLE);
     /////////////////////////////////////////////////
     
     private Model rdf1;
@@ -63,7 +63,7 @@ public class RDFMatcher {
     
     
     public static void main(String[] args){
-        Log log = new Log(true, true, Log.ANSI_GREEN);
+        Log log = new Log(true, true, Log.ANSI_PURPLE);
         
         WSDLExtractStructure wsdlEstructurado = new WSDLExtractStructure("http://www.xignite.com/xBATSLastSale.asmx?WSDL");
         
@@ -79,8 +79,34 @@ public class RDFMatcher {
             arbol.imprimirArbol();
             log.printLogMessage("Comapacion entre:" + operacionesWSDL.get(0).getOperacion() + " y " + arbol.getOperacion() +"[" + RDFMatcher.matchRDFModels(primerrdf, arbol.getRDFModel()) + "]");
             
-        }  
+        }
         
+        ArbolWSDL superarbol[];
+        
+        superarbol = ArbolWSDL.generarSuperArboles(operacionesWSDL.get(0), operacionesWSDL.get(5));
+        
+        System.out.println("\n\n\n\nImprimiendo arboles originales");
+        
+        
+        
+        
+        System.out.println("\n\n\n\nImprimiendo super arboles");
+        operacionesWSDL.get(0).imprimirArbol();
+        superarbol[0].imprimirArbol();
+        
+        operacionesWSDL.get(5).imprimirArbol();
+        superarbol[1].imprimirArbol();
+        
+        
+        List<Integer> vectcaracA,vectcaracB;
+        
+        vectcaracA = superarbol[0].getVectorCaracteristico();
+        superarbol[0].imprimirVectorCaracteristico();
+        
+        vectcaracB = superarbol[1].getVectorCaracteristico();
+        superarbol[1].imprimirVectorCaracteristico();
+        
+        log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB) );
         
     }
     
