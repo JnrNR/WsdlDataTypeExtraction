@@ -10,6 +10,7 @@ import java.util.StringTokenizer;
 import jnr.datatypeextraction.ElementoWSDL;
 import jnr.datatypeextraction.InterfazElementoWSDL;
 import jnr.rdfwsdloperationsmatcher.RDFVocabulary;
+import jnr.utilities.Estadistica;
 import jnr.utilities.Log;
 
 /**
@@ -730,17 +731,32 @@ public class ArbolWSDL {
     public static float calcularFactorDeCorrelacion(List<Integer> vectorA, List<Integer> vectorB){
         float factorDeCorrelacion=0;
         
+        int vectorsSize = vectorA.size();
+        
+        double[] desx = new double[vectorsSize];
+        double[] desy = new double[vectorsSize];
+        float pasox, pasoy;
+        int nodosBuenos = 0;
+        
         if(vectorA.size() == vectorB.size()){
-            //Realizando correlación
-            int rxx=0, ryy=0, rxy=0; 
             
-            for(int i=0; i<vectorA.size(); i++){
-                rxx += vectorA.get(i)*vectorA.get(i);
-                ryy += vectorB.get(i)*vectorB.get(i);
-                rxy += vectorA.get(i)*vectorB.get(i);
+            for(int i=0; i<vectorsSize; i++){
+                
+                if( vectorA.get(i)>0 && vectorB.get(i)>0 ){
+                    desx[i] = vectorA.get(i);
+                    desy[i] = vectorB.get(i);
+                    nodosBuenos++;
+                }
+                
+                //Calculando el paso para la compensacion
+                pasox =  2*(float)Estadistica.desviacionEstandard(desx)/nodosBuenos;
+                pasoy =  2*(float)Estadistica.desviacionEstandard(desy)/nodosBuenos;
+                
+                //Calculando Covarianza
+                
+                
+                
             }
-            
-            factorDeCorrelacion = (float) (rxy / Math.sqrt(rxx*ryy));
             
         }else{
             //log.printLogErrorMessage("No es posible calcular el factor de correlación de los vectores caracteristicos (longitudes dispares).");

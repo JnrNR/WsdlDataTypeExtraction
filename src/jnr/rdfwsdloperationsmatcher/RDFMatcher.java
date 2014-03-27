@@ -83,7 +83,7 @@ public class RDFMatcher {
         
         ArbolWSDL superarbol[];
         
-        superarbol = ArbolWSDL.generarSuperArboles(operacionesWSDL.get(0), operacionesWSDL.get(5));
+        superarbol = ArbolWSDL.generarSuperArboles(operacionesWSDL.get(0), operacionesWSDL.get(7));
         
         System.out.println("\n\n\n\nImprimiendo arboles originales");
         
@@ -94,7 +94,7 @@ public class RDFMatcher {
         operacionesWSDL.get(0).imprimirArbol();
         superarbol[0].imprimirArbol();
         
-        operacionesWSDL.get(5).imprimirArbol();
+        operacionesWSDL.get(7).imprimirArbol();
         superarbol[1].imprimirArbol();
         
         
