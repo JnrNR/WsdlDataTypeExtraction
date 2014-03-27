@@ -98,7 +98,7 @@ public class RDFMatcher {
         superarbol[1].imprimirArbol();
         
         
-        List<Integer> vectcaracA,vectcaracB;
+        List<Float> vectcaracA,vectcaracB;
         
         vectcaracA = superarbol[0].getVectorCaracteristico();
         superarbol[0].imprimirVectorCaracteristico();

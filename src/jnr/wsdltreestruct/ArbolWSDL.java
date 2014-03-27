@@ -34,7 +34,7 @@ public class ArbolWSDL {
     private String mensajeEntrada;
     private String mensajeSalida;
     
-    private List<Integer> vectorCaracteristico;
+    private List<Float> vectorCaracteristico;
     
     
     public ArbolWSDL(ElementoWSDL elementoRaiz, String servicio){
@@ -698,17 +698,16 @@ public class ArbolWSDL {
             nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
             
             if(nodoEnTurno.getRamaDescendiente()!=-1){//Nodo con descenencia (imprime el nodo y analiza la descendencia)
-
-                    vectorCaracteristico.add(nodoEnTurno.getNumeroDeHijos());
-                    vectorCaracteristico.add(nodoEnTurno.getPeso());
+                    vectorCaracteristico.add((float)nodoEnTurno.getNumeroDeHijos());
+                    vectorCaracteristico.add((float)nodoEnTurno.getPeso());
                 
                 //Explorar la rama referenciada
                 obtenerValoresCaracteristicos(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()));
                 
             }else{//Nodo sin descendencia
 
-                    vectorCaracteristico.add(nodoEnTurno.getNumeroDeHijos());
-                    vectorCaracteristico.add(nodoEnTurno.getPeso());
+                    vectorCaracteristico.add((float)nodoEnTurno.getNumeroDeHijos());
+                    vectorCaracteristico.add((float)nodoEnTurno.getPeso());
                 
             }
         }
@@ -719,44 +718,64 @@ public class ArbolWSDL {
         log.printLogMessage(vectorCaracteristico.toString());
     }
     
-    public List<Integer> getVectorCaracteristico(){
+    public List<Float> getVectorCaracteristico(){
         if(vectorCaracteristico==null){
-            vectorCaracteristico = new ArrayList<Integer>();
+            vectorCaracteristico = new ArrayList<Float>();
             obtenerValoresCaracteristicos(tronco.get(0).get(0));
         } 
         
         return  vectorCaracteristico;
     }
     
-    public static float calcularFactorDeCorrelacion(List<Integer> vectorA, List<Integer> vectorB){
-        float factorDeCorrelacion=0;
+    public static double calcularFactorDeCorrelacion(List<Float> vectorX, List<Float> vectorY){
+        double factorDeCorrelacion=0;
         
-        int vectorsSize = vectorA.size();
+        int vectorsSize = vectorX.size();
         
         double[] desx = new double[vectorsSize];
         double[] desy = new double[vectorsSize];
         float pasox, pasoy;
         int nodosBuenos = 0;
         
-        if(vectorA.size() == vectorB.size()){
+        if(vectorX.size() == vectorY.size()){
             
             for(int i=0; i<vectorsSize; i++){
                 
-                if( vectorA.get(i)>0 && vectorB.get(i)>0 ){
-                    desx[i] = vectorA.get(i);
-                    desy[i] = vectorB.get(i);
+                if( vectorX.get(i)>0 && vectorY.get(i)>0 ){
+                    desx[i] = vectorX.get(i);
+                    desy[i] = vectorY.get(i);
                     nodosBuenos++;
                 }
                 
-                //Calculando el paso para la compensacion
+            }
+            
+            //Calculando el paso para la compensacion
                 pasox =  2*(float)Estadistica.desviacionEstandard(desx)/nodosBuenos;
                 pasoy =  2*(float)Estadistica.desviacionEstandard(desy)/nodosBuenos;
+            
+            //Adaptando los vectores x,y y calculando su covarianza
+                double sumaX = 0, sumaY = 0, sumaXY = 0;
+                double covarianza;
+            
+                int nodosComp=0;
+                for(int i=0; i<vectorsSize; i++){
+                    if( vectorX.get(i)<0 || vectorY.get(i)<0){
+                        nodosComp = nodosComp + 1; 
+                        vectorX.remove(i);vectorY.remove(i);
+                        vectorX.add(i, (float)(-1*(nodosComp*pasox)));
+                        vectorY.add(i, (float)(nodosComp*pasoy));
+                        
+                    }
+                    sumaX += vectorX.get(i);
+                    sumaY += vectorY.get(i);
+                    sumaXY += vectorX.get(i)*vectorY.get(i);
+                }
                 
                 //Calculando Covarianza
+                    covarianza = ( sumaXY - ((sumaX*sumaY)/vectorX.size()) )/(vectorX.size()-1);
                 
-                
-                
-            }
+            factorDeCorrelacion = covarianza;
+            
             
         }else{
             //log.printLogErrorMessage("No es posible calcular el factor de correlación de los vectores caracteristicos (longitudes dispares).");
