@@ -727,35 +727,46 @@ public class ArbolWSDL {
         return  vectorCaracteristico;
     }
     
-    public static double calcularFactorDeCorrelacion(List<Float> vectorX, List<Float> vectorY){
-        double factorDeCorrelacion=0;
+    public static float calcularFactorDeCorrelacion(List<Float> vectorX, List<Float> vectorY){
+        float factorDeCorrelacion=0;
         
         int vectorsSize = vectorX.size();
         
-        double[] desx = new double[vectorsSize];
-        double[] desy = new double[vectorsSize];
         float pasox, pasoy;
         int nodosBuenos = 0;
         
         if(vectorX.size() == vectorY.size()){
             
+            float sumaVectorDesX=0, sumaCuadradosDesX=0, sumaVectorDesY=0, sumaCuadradosDesY=0, desX=0, desY=0;
             for(int i=0; i<vectorsSize; i++){
                 
                 if( vectorX.get(i)>0 && vectorY.get(i)>0 ){
-                    desx[i] = vectorX.get(i);
-                    desy[i] = vectorY.get(i);
-                    nodosBuenos++;
+                    sumaVectorDesX += vectorX.get(i);
+                    sumaCuadradosDesX += (float)Math.pow(vectorX.get(i), 2);
+                    sumaVectorDesY += vectorY.get(i);
+                    sumaCuadradosDesY += (float)Math.pow(vectorY.get(i), 2);
+                    
+                    nodosBuenos++;                
                 }
-                
+                                
             }
+             
+            //Calculando desviaciones estandard desX y desY
+                desX = (float) Math.sqrt( (sumaCuadradosDesX - ( Math.pow(sumaVectorDesX,2)/vectorsSize ))/(vectorsSize-1) );
+                desY = (float) Math.sqrt( (sumaCuadradosDesY - ( Math.pow(sumaVectorDesY,2)/vectorsSize ))/(vectorsSize-1) );
+            
+            System.out.println("Desviaciones estandard para desx:"+desX+" desy:"+desY);
+            
             
             //Calculando el paso para la compensacion
-                pasox =  2*(float)Estadistica.desviacionEstandard(desx)/nodosBuenos;
-                pasoy =  2*(float)Estadistica.desviacionEstandard(desy)/nodosBuenos;
+                pasox =  2*desX/nodosBuenos;
+                pasoy =  2*desY/nodosBuenos;
             
             //Adaptando los vectores x,y y calculando su covarianza
-                double sumaX = 0, sumaY = 0, sumaXY = 0;
-                double covarianza;
+
+                float sumaX = 0, sumaY = 0, sumaXY = 0;
+                float sumaCuadradosX=0, sumaCuadradosY=0, desEstandardX, desEstandardY;
+                float covarianza;
             
                 int nodosComp=0;
                 for(int i=0; i<vectorsSize; i++){
@@ -769,12 +780,25 @@ public class ArbolWSDL {
                     sumaX += vectorX.get(i);
                     sumaY += vectorY.get(i);
                     sumaXY += vectorX.get(i)*vectorY.get(i);
+
+                    sumaCuadradosX += (float)Math.pow(vectorX.get(i), 2);
+                    sumaCuadradosY += (float)Math.pow(vectorY.get(i), 2);
                 }
                 
-                //Calculando Covarianza
-                    covarianza = ( sumaXY - ((sumaX*sumaY)/vectorX.size()) )/(vectorX.size()-1);
+                //Caulculando la desviacion estandard del vector X y del vector Y
+                    desEstandardX = (float) Math.sqrt( (sumaCuadradosX - ( Math.pow(sumaX,2)/vectorsSize ))/(vectorsSize-1) );
+                    desEstandardY = (float) Math.sqrt( (sumaCuadradosY - ( Math.pow(sumaY,2)/vectorsSize ))/(vectorsSize-1) );
                 
-            factorDeCorrelacion = covarianza;
+                
+                System.out.println("VECTOR X MODIFICADO:"+vectorX.toString());
+                System.out.println("VECTOR Y MODIFICADO:"+vectorY.toString());
+                //Calculando Covarianza
+                    covarianza = ( sumaXY - ((sumaX*sumaY)/vectorX.size()) )/(vectorX.size()-1);System.out.println("COVARIANZA:"+covarianza);
+                
+            /////////////////////////////////////
+                    ////////////////////////////
+                    ////////////////////////////ESTA MAL ES ENTRE LAS DESVIACIONES ESTANDARD DE X Y Y NO DE DESX Y DESY
+            factorDeCorrelacion = covarianza/( desEstandardX * desEstandardY );
             
             
         }else{

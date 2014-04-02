@@ -20,7 +20,7 @@ public class Estadistica {
             sumaDeCuadrados += Math.pow(vector[i], 2);
         }
 
-        varianza = (sumaDeCuadrados - ( sumaVector/vector.length ))/(vector.length -1);
+        varianza = (sumaDeCuadrados - ( Math.pow(sumaVector,2)/vector.length ))/(vector.length-1);
         
         return Math.sqrt(varianza);
     }
