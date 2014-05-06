@@ -18,6 +18,31 @@ public class Directorio {
     //Depuración
     public static Log log = new Log(true, true, Log.ANSI_YELLOW);
     /////////////////////////////////////////////////
+    List<String> ficheros;
+    
+    
+    public Directorio(){}
+    
+    public List<String> getFicheros(){
+        return ficheros;
+    }
+    
+    public void buscarElementosDirectorio(String ruta){
+        this.ficheros = new ArrayList<String>();
+        
+        File directorio = new File(ruta);
+        
+        String[] ficheros = directorio.list();
+        if (ficheros == null)
+            log.printLogErrorMessage("No hay ficheros en el directorio especificado");
+        else { 
+            for (int x=0;x<ficheros.length;x++)
+                this.ficheros.add(ficheros[x]);
+        }
+    }
+    
+    
+    
     
     public static void listarElementosDirectorio(String ruta){        
         File directorio = new File(ruta);

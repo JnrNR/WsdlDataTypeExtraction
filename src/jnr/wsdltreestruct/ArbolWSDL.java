@@ -244,6 +244,9 @@ public class ArbolWSDL {
         
     }
     
+    public int getPeso(){
+        return tronco.get(0).get(0).getNodos().get(0).getPeso();
+    }
     
     public ElementoWSDL getNodo(String rutaDelNodo){
         StringTokenizer tokenizerRuta = new StringTokenizer(rutaDelNodo);
@@ -566,6 +569,12 @@ public class ArbolWSDL {
         return ramaOrdenada;
     }
     
+    public void ordenar(){
+        parametrizarArbol(tronco.get(0).get(0));
+        pesarArbol(tronco.get(0).get(0).getNodos().get(0), 0);
+        ordenarArbol();
+    }
+    
     /**
      * Ordena de izquierda a derecha los nodos con mayor numero de hijos.<br>
      * El rodenamiento se realiza para todas las ramas del arbol.
@@ -655,8 +664,18 @@ public class ArbolWSDL {
                 }
             //Recursion
                 if(!ramaAnula && !ramaBnula){
+                    try{
                     ramaDescendienteA = ramaA.getNodos().get(noNuevoNodo).getRamaDescendiente();
+                    }catch(Exception e){
+                        ramaDescendienteA=-1;
+                        Log.println("Rama descentidente A no posee mas hijos", Log.ANSI_RED);
+                    }
+                    try{
                     ramaDescendienteB = ramaB.getNodos().get(noNuevoNodo).getRamaDescendiente();
+                    }catch(Exception e){
+                        ramaDescendienteB=-1;
+                        Log.println("Rama descentidente B no posee mas hijos", Log.ANSI_RED);
+                    }
                     //Si nodo de rama A y rama B tienen hijos
                     if(ramaDescendienteA!=-1 && ramaDescendienteB!=-1){
                         generarSuperRamas(superArbolA, superArbolB, arbolA, arbolB, arbolA.getTronco().get(nivel+1).get(ramaDescendienteA), arbolB.getTronco().get(nivel+1).get(ramaDescendienteB), rutaInsercion + " " + nombreDelNuevoNodo);
