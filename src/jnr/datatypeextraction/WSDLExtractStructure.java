@@ -8,6 +8,7 @@ import com.predic8.schema.Extension;
 import com.predic8.schema.ModelGroup;
 import com.predic8.schema.Schema;
 import com.predic8.schema.SchemaComponent;
+import com.predic8.schema.Sequence;
 import com.predic8.schema.SimpleContent;
 import com.predic8.schema.SimpleType;
 import com.predic8.wsdl.Definitions;
@@ -411,43 +412,109 @@ public class WSDLExtractStructure {
                                 log.printLogMessage(" -Particle Kind: " + sc.getClass().getSimpleName());//DEPURACION
                                 log.printLogMessage(" Particle Name: " + sc.getName());//DEPURACION
                                 log.printLogMessage(" Prefix: " + sc.getPrefix());//DEPURACION
-                                log.printLogMessage(" DataType: " + ((QName)sc.getProperty("type")).getQualifiedName() );//DEPURACION
+                                //log.printLogMessage(" DataType: " + ((QName)sc.getProperty("type")).getQualifiedName() );//DEPURACION
                                 log.printLogMessage(" String: " + sc.getAsString());//DEPURACION
+                                log.printLogMessage("Sequence:" + (sc instanceof Sequence));//DEPURACION
+                                
+                                //Determinando si el tipo complejo contiene una secuencia
+                                if(sc instanceof Sequence){
+                                    for (SchemaComponent elementoSecuencia : ((ModelGroup) sc).getParticles()) {
+                                                log.printLogMessage("SECUENCIA -Particle Kind: " + elementoSecuencia.getClass().getSimpleName());//DEPURACION
+                                                log.printLogMessage("SECUENCIA Particle Name: " + elementoSecuencia.getName());//DEPURACION
+                                                log.printLogMessage("SECUENCIA Prefix: " + elementoSecuencia.getPrefix());//DEPURACION
+                                                //log.printLogMessage(" DataType: " + ((QName)sc.getProperty("type")).getQualifiedName() );//DEPURACION
+                                                log.printLogMessage("SECUENCIA String: " + elementoSecuencia.getAsString());//DEPURACION
+                                                log.printLogMessage("SECUENCIA Sequence:" + (elementoSecuencia instanceof Sequence));//DEPURACION
 
-                                //Creando nodo a insertar
-                                    String tipo;
-                                    nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, sc.getName());
+                                                //Creando nodo a insertar
+                                                String tipo = null;
+                                                nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, elementoSecuencia.getName());
+                                                
+                                                //Identificando el tipo del elemento
+                                                try{
+                                                    tipo = ((QName)elementoSecuencia.getProperty("type")).getQualifiedName();
+                                                }catch(Exception e){}
+                                                if(tipo!=null){
+                                                    nodo.setTipoDeDato(tipo);
+                                                    nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO);
+                                                }else{
+                                                    try{
+                                                        tipo = ((QName)elementoSecuencia.getProperty("element")).getQualifiedName();
+                                                    }catch(Exception e){ 
+                                                        nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.NO_IDENTIFICADO);  
+                                                    }
+                                                    nodo.setTipoDeDato(tipo);
+                                                    nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO);
+                                                }
+                                                //Verificando si el tipo es primitivo
+                                                if(obtenerPrefijo(nodo.getTipoDeDato()).equals(elementoEsquema.getPrefijoXMLSchema())){
+                                                    nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_PRIMITIVO);
+                                                }
 
-                                    //Identificando el tipo del elemento
-                                    tipo = ((QName)sc.getProperty("type")).getQualifiedName();
-                                    if(tipo!=null){
-                                        nodo.setTipoDeDato(tipo);
-                                        nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO);
-                                    }else{
-                                        tipo = ((QName)sc.getProperty("element")).getQualifiedName();
-                                        nodo.setTipoDeDato(tipo);
-                                        nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO);
+
+                                            //Modificando tipo de elemento desconocido
+                                            if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
+                                                operaciones.get(operacion).getNodo(rutaDeInsercion).setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO);
+                                            }
+
+                                            //Insertando nodo
+                                            operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
+                                            log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
+
+                                            //Recursion
+                                            if(!rutaDeInsercion.contains(nodo.getNombre())){
+                                                if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO) || nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO)){
+                                                    extraerTipo(nodo.getTipoDeElementoXMLSchema(), nodo.getTipoDeDato(), rutaDeInsercion + " " + nodo.getNombre(), operacion);
+                                                }
+                                            }
+                                                                        
                                     }
-                                    //Verificando si el tipo es primitivo
-                                    if(obtenerPrefijo(nodo.getTipoDeDato()).equals(elementoEsquema.getPrefijoXMLSchema())){
-                                        nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_PRIMITIVO);
+                                }
+                                else{
+                                
+                                    //Creando nodo a insertar
+                                        String tipo = null;
+                                        nodo = new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.TIPO, sc.getName());
+
+                                        //Identificando el tipo del elemento
+                                        try{
+                                            tipo = ((QName)sc.getProperty("type")).getQualifiedName();
+                                        }catch(Exception e){}
+                                        
+                                        if(tipo!=null){
+                                            nodo.setTipoDeDato(tipo);
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO);
+                                        }else{
+                                            try{
+                                                tipo = ((QName)sc.getProperty("element")).getQualifiedName();
+                                            }catch(Exception e){ 
+                                                nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.NO_IDENTIFICADO);  
+                                            }
+                                            nodo.setTipoDeDato(tipo);
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO);
+                                        }
+                                        //Verificando si el tipo es primitivo
+                                        if(obtenerPrefijo(nodo.getTipoDeDato()).equals(elementoEsquema.getPrefijoXMLSchema())){
+                                            nodo.setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_PRIMITIVO);
+                                        }
+
+
+                                    //Modificando tipo de elemento desconocido
+                                    if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
+                                        operaciones.get(operacion).getNodo(rutaDeInsercion).setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO);
                                     }
 
+                                    //Insertando nodo
+                                    operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
+                                    log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
 
-                                //Modificando tipo de elemento desconocido
-                                if(tipoDeElemento.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO)){
-                                    operaciones.get(operacion).getNodo(rutaDeInsercion).setTipoDeElementoXMLSchema(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO);
+                                    //Recursion
+                                    if(!rutaDeInsercion.contains(nodo.getNombre())){
+                                        if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO) || nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO)){
+                                            extraerTipo(nodo.getTipoDeElementoXMLSchema(), nodo.getTipoDeDato(), rutaDeInsercion + " " + nodo.getNombre(), operacion);
+                                        }
+                                    }
                                 }
-
-                                //Insertando nodo
-                                operaciones.get(operacion).insertarNodo(rutaDeInsercion, nodo);
-                                log.printLogMessage("Ruta de insercion:"+rutaDeInsercion);//DEPURACION
-
-                                //Recursion
-                                if(nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO) || nodo.getTipoDeElementoXMLSchema().equals(ElementoXMLSchema.TipoDeElementoXMLSchema.ELEMENTO)){
-                                    extraerTipo(nodo.getTipoDeElementoXMLSchema(), nodo.getTipoDeDato(), rutaDeInsercion + " " + nodo.getNombre(), operacion);
-                                }
-
 
                             }
                         }

@@ -15,7 +15,7 @@ import com.predic8.schema.SimpleType;
  */
 public class ElementoXMLSchema extends ElementoXML {
 
-    public enum TipoDeElementoXMLSchema {TIPO_COMPLEJO, TIPO_SIMPLE, ELEMENTO, TIPO_PRIMITIVO, DESCONOCIDO}
+    public enum TipoDeElementoXMLSchema {TIPO_COMPLEJO, TIPO_SIMPLE, ELEMENTO, TIPO_PRIMITIVO, DESCONOCIDO, NO_IDENTIFICADO}
     
     //Datos del equema contenedor
     private String espacioDeNombres;

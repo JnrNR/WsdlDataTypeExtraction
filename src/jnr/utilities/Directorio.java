@@ -67,11 +67,18 @@ public class Directorio {
      * @param url Ruta del directorio Web urlEjemplo = "http://www.ejemplo.com/directorioweb".
      */
     public static void listarElementosDeURL(String url){
+        boolean formatoLista = false;
         try{
             Document doc = Jsoup.connect(url).get();
-            System.out.println(doc.toString());
+            //System.out.println(doc.toString());
             for (Element file : doc.select("li a")) {
                 System.out.println(file.attr("href"));
+                formatoLista = true;
+            }
+            if(!formatoLista){
+                for (Element file : doc.select("td a")) {
+                    System.out.println(file.attr("href"));
+                }
             }
         }catch(IOException ex){
             log.printLogErrorMessage("Error en la apertura del listado EX:" + ex);
@@ -111,7 +118,8 @@ public class Directorio {
     
     
     public static void main(String[] args){
-        Directorio.listarElementosDeURL("http://www.comparadordeoperacioneswsdl.netne.net/WSDLInterfaces/wsdl");
+        //Directorio.listarElementosDeURL("http://www.comparadordeoperacioneswsdl.netne.net/WSDLInterfaces/wsdl");
+        Directorio.listarElementosDeURL("http://148.247.102.37:8080/wsdlcomparison/servicios/TC3-WSDL");
         
     }
     

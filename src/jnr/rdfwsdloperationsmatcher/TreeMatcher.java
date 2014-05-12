@@ -113,7 +113,7 @@ public class TreeMatcher {
         */
         
         TreeMatcher comparador = new TreeMatcher();
-        comparador.matchWSDLDirectory("D:\\CINVESTAV\\Tesis\\servicios\\pruebas");
+        comparador.matchWSDLDirectory("D:\\CINVESTAV\\Tesis\\servicios\\pruebas2");
     }
     
     public void matchWSDLDirectory(String url){
