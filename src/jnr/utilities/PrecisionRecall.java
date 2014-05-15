@@ -11,7 +11,14 @@ package jnr.utilities;
  * @author Jorge Náder Roa
  */
 public class PrecisionRecall {
-    
+    /**
+     * Número total de registros involucrados en la evaluación
+     */
+    int TOTAL_REGISTROS;
+    /**
+     * Número total de registros relevantes (obtenidos y no obtenidos) 
+     */
+    int REGISTROS_RELEVANTES;
     /**
      * A = Número de registros obtenidos que son relevantes 
      */
@@ -27,6 +34,37 @@ public class PrecisionRecall {
     
     public PrecisionRecall(){
         A = B = C = 0;
+    }
+    
+    
+    public void setNoRegistros(int total){
+        TOTAL_REGISTROS = total;
+    }
+    public int getNoRegistros(){
+        return TOTAL_REGISTROS;
+    }
+    /**
+     * 
+     * @return Número total de registros relevantes 
+     */
+    public int getRegistrosRelevantes() {
+        return REGISTROS_RELEVANTES;
+    }
+
+    /**
+     * Establece a cero el parametro REGISTROS_RELEVANTES <br/>
+     * REGISTROS_RELEVANTES = Número total de registros relevantes
+     */
+    public void resetRegistrosRelevantes() {
+        REGISTROS_RELEVANTES = 0;
+    }
+    
+    /**
+     * Incrementa en una unidad el parametro REGISTROS_RELEVANTES <br/>
+     * REGISTROS_RELEVANTES = Número total de registros relevantes
+     */
+    public void incrementRegistrosRelevantes(){
+        REGISTROS_RELEVANTES++;
     }
     
     /**
@@ -58,7 +96,7 @@ public class PrecisionRecall {
      * @return Número de registros no obtenidos que son relevantes
      */
     public int getB() {
-        return B;
+        return REGISTROS_RELEVANTES - A;
     }
 
     /**

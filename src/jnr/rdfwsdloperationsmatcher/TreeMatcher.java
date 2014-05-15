@@ -6,6 +6,7 @@ import java.util.List;
 import jnr.datatypeextraction.WSDLExtractStructure;
 import jnr.utilities.Directorio;
 import jnr.utilities.Log;
+import jnr.utilities.PrecisionRecall;
 import jnr.wsdltreestruct.ArbolWSDL;
 
 /**
@@ -15,6 +16,12 @@ import jnr.wsdltreestruct.ArbolWSDL;
 public class TreeMatcher {
     //Depuración
     public Log log = new Log(true, true, Log.ANSI_PURPLE);
+    /////////////////////////////////////////////////
+    //Métrica
+    private PrecisionRecall metrica = new PrecisionRecall();
+    private int RELEVANCIA_NONODOS = 15;
+    private int TOTAL_OPERACIONES = 0;
+    private float UMBRAL = (float) 0.75;
     /////////////////////////////////////////////////
     
     private Model rdf1;
@@ -151,8 +158,21 @@ public class TreeMatcher {
                 
                 //Comparando las operaciones del servicio A con las operaciones del servicio B
                 for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                    TOTAL_OPERACIONES++;
+                    
                     for(ArbolWSDL arbolB : operacionesWSDLservicioB){
                         log.printLogMessage("COMPARANDO OPERACIONES:" + arbolA.getServicio() + "[" + arbolA.getPeso() + "]" + arbolB.getServicio() + "[" + arbolB.getPeso() + "]");
+                        
+                        //Mediciones precision & recall
+                            if(arbolA.getPeso()==RELEVANCIA_NONODOS){
+                                metrica.incrementRegistrosRelevantes();
+                            }
+                            if(arbolB.getPeso()==RELEVANCIA_NONODOS){
+                                metrica.incrementRegistrosRelevantes();
+                            }
+                            
+                        ////////////////////////////////////////////////////////
+                        
                         
                         //Comparando operacionA en turno con operacion B en turno
                         ArbolWSDL superarbol[];
@@ -164,6 +184,23 @@ public class TreeMatcher {
                         correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
                         log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );
                         
+                        
+                        //Mediciones precision & recall
+                            if(correlacionAB >= UMBRAL){
+                                if(arbolA.getPeso()==RELEVANCIA_NONODOS){
+                                    metrica.incrementA();
+                                }else{
+                                    metrica.incrementC();
+                                }
+                                if(arbolB.getPeso()==RELEVANCIA_NONODOS){
+                                    metrica.incrementA();
+                                }else{
+                                    metrica.incrementC();
+                                }
+                            }
+                        ////////////////////////////////////////////////////////
+                        
+                        
                     }
                 }
                 
@@ -171,7 +208,12 @@ public class TreeMatcher {
             }
         }
         
-    
+        //Mediciones precision & recall
+            metrica.setNoRegistros(TOTAL_OPERACIONES);
+            log.printLogMessage("TOTAL DE OPERACIONES:" + TOTAL_OPERACIONES + " REGISTROS RELEVANTES:"+metrica.getRegistrosRelevantes());
+            log.printLogMessage("Valores metrica  A:" +metrica.getA()+ " B:" +metrica.getB()+ " C:" +metrica.getC());
+            log.printLogMessage("<<<<<<<<<<PRECISION:" + metrica.getPrecision() + " RECALL:" + metrica.getRecall() + ">>>>>>>>>>");
+        ////////////////////////////////////////////////////////
     }
     
 }
