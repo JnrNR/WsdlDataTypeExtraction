@@ -621,7 +621,11 @@ public class ArbolWSDL {
         return superArboles;
     }
     private static void generarSuperRamas(ArbolWSDL superArbolA, ArbolWSDL superArbolB, ArbolWSDL arbolA, ArbolWSDL arbolB, Rama ramaA, Rama ramaB, String rutaInsercion){
-
+        //Depuración
+        Log log = new Log(false, false, Log.ANSI_GREEN);
+        /////////////////////////////////////////////////
+        
+        
         boolean ramaAnula = false, ramaBnula = false;
         int noNodosA = 0, noNodosB = 0;
         int ramaDescendienteA, ramaDescendienteB;
@@ -668,13 +672,13 @@ public class ArbolWSDL {
                     ramaDescendienteA = ramaA.getNodos().get(noNuevoNodo).getRamaDescendiente();
                     }catch(Exception e){
                         ramaDescendienteA=-1;
-                        Log.println("Rama descentidente A no posee mas hijos", Log.ANSI_RED);
+                        log.printLogErrorMessage("ArbolWSDL>generarSuperRamas() :" + "Rama descentidente A no posee mas hijos");//DEPURACION
                     }
                     try{
                     ramaDescendienteB = ramaB.getNodos().get(noNuevoNodo).getRamaDescendiente();
                     }catch(Exception e){
                         ramaDescendienteB=-1;
-                        Log.println("Rama descentidente B no posee mas hijos", Log.ANSI_RED);
+                        log.printLogErrorMessage("ArbolWSDL>generarSuperRamas() :" + "Rama descentidente B no posee mas hijos");//DEPURACION
                     }
                     //Si nodo de rama A y rama B tienen hijos
                     if(ramaDescendienteA!=-1 && ramaDescendienteB!=-1){
@@ -747,6 +751,11 @@ public class ArbolWSDL {
     }
     
     public static float calcularFactorDeCorrelacion(List<Float> vectorX, List<Float> vectorY){
+        //Depuración
+        Log log = new Log(false, false, Log.ANSI_GREEN);
+        /////////////////////////////////////////////////        
+        
+        
         float factorDeCorrelacion=0;
         
         int vectorsSize = vectorX.size();
@@ -773,8 +782,8 @@ public class ArbolWSDL {
             //Calculando desviaciones estandard desX y desY
                 desX = (float) Math.sqrt( (sumaCuadradosDesX - ( Math.pow(sumaVectorDesX,2)/vectorsSize ))/(vectorsSize-1) );
                 desY = (float) Math.sqrt( (sumaCuadradosDesY - ( Math.pow(sumaVectorDesY,2)/vectorsSize ))/(vectorsSize-1) );
-            
-            System.out.println("Desviaciones estandard para desx:"+desX+" desy:"+desY);
+                
+                log.printLogMessage("ArbolWSDL>calcularFactorDeCorrelacion() :" + "Desviaciones estandard para desx:"+desX+" desy:"+desY);//DEPURACION
             
             
             //Calculando el paso para la compensacion
@@ -808,11 +817,12 @@ public class ArbolWSDL {
                     desEstandardX = (float) Math.sqrt( (sumaCuadradosX - ( Math.pow(sumaX,2)/vectorsSize ))/(vectorsSize-1) );
                     desEstandardY = (float) Math.sqrt( (sumaCuadradosY - ( Math.pow(sumaY,2)/vectorsSize ))/(vectorsSize-1) );
                 
-                
-                System.out.println("VECTOR X MODIFICADO:"+vectorX.toString());
-                System.out.println("VECTOR Y MODIFICADO:"+vectorY.toString());
+                    log.printLogMessage("ArbolWSDL>calcularFactorDeCorrelacion() :" + "VECTOR X MODIFICADO:"+vectorX.toString() );//DEPURACION
+                    log.printLogMessage("ArbolWSDL>calcularFactorDeCorrelacion() :" + "VECTOR Y MODIFICADO:"+vectorY.toString() );//DEPURACION
+
                 //Calculando Covarianza
-                    covarianza = ( sumaXY - ((sumaX*sumaY)/vectorX.size()) )/(vectorX.size()-1);System.out.println("COVARIANZA:"+covarianza);
+                    covarianza = ( sumaXY - ((sumaX*sumaY)/vectorX.size()) )/(vectorX.size()-1);
+                    log.printLogMessage("ArbolWSDL>calcularFactorDeCorrelacion() :" + "COVARIANZA:"+covarianza);//DEPURACION
                 
             /////////////////////////////////////
                     ////////////////////////////

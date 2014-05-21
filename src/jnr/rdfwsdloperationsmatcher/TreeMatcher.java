@@ -120,7 +120,8 @@ public class TreeMatcher {
         */
         
         TreeMatcher comparador = new TreeMatcher();
-        comparador.matchWSDLDirectory("D:\\CINVESTAV\\Tesis\\servicios\\pruebas2");
+        //comparador.matchWSDLDirectory("D:\\CINVESTAV\\Tesis\\servicios\\pruebas2");//Para Windows 
+        comparador.matchWSDLDirectory("/Users/JNR/CINVESTAV/Tesis/servicios/pruebas2");//Para Mac
     }
     
     public void matchWSDLDirectory(String url){
@@ -129,12 +130,13 @@ public class TreeMatcher {
         directorio.buscarElementosDirectorio(url);
         int noArchivos = directorio.getFicheros().size();
 
-        
+        int contador=0;
         //Determinando las comparativas a realizar por medio de una matriz triangular inferiror.
         for(int columna=0; columna<noArchivos-1; columna++ ){// Control de columnas
             
             //Extraccion de operaciones para el servicio A
-                WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(columna));
+                //WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(columna));//Para Windows
+                WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"/"+directorio.getFicheros().get(columna));//Para Mac
                 List<ArbolWSDL> operacionesWSDLservicioA;
                 operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
                 
@@ -142,12 +144,14 @@ public class TreeMatcher {
                 for(ArbolWSDL arbolA : operacionesWSDLservicioA){
                     arbolA.ordenar();
                 }
-                
+                contador=1;
             
             for(int renglon=columna+1; renglon<noArchivos; renglon++){//Control de renglones
-                log.printLogMessage("COMPARANDO SERVICIOS:\t" + directorio.getFicheros().get(columna) + "\t" + directorio.getFicheros().get(renglon) + "\n\n");
+                //log.printLogMessage("COMPARANDO SERVICIOS:\t" + directorio.getFicheros().get(columna) + "\t" + directorio.getFicheros().get(renglon) + "\n\n");//DEPURACION
                 
-                WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(renglon));
+                //WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(renglon));//Para Windows
+                WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url+"/"+directorio.getFicheros().get(renglon));//Para Mac
+                
                 List<ArbolWSDL> operacionesWSDLservicioB;
                 operacionesWSDLservicioB = wsdlEstructuradoB.getArbolesDeOperaciones();
                 
@@ -161,7 +165,7 @@ public class TreeMatcher {
                     TOTAL_OPERACIONES++;
                     
                     for(ArbolWSDL arbolB : operacionesWSDLservicioB){
-                        log.printLogMessage("COMPARANDO OPERACIONES:" + arbolA.getServicio() + "[" + arbolA.getPeso() + "]" + arbolB.getServicio() + "[" + arbolB.getPeso() + "]");
+                        //log.printLogMessage("COMPARANDO OPERACIONES:" + arbolA.getServicio() + "[" + arbolA.getPeso() + "]" + arbolB.getServicio() + "[" + arbolB.getPeso() + "]");//DEPURACION
                         
                         //Mediciones precision & recall
                             if(arbolA.getPeso()==RELEVANCIA_NONODOS){
@@ -172,7 +176,7 @@ public class TreeMatcher {
                             }
                             
                         ////////////////////////////////////////////////////////
-                        
+                        contador++;
                         
                         //Comparando operacionA en turno con operacion B en turno
                         ArbolWSDL superarbol[];
@@ -182,9 +186,13 @@ public class TreeMatcher {
                         vectcaracA = superarbol[0].getVectorCaracteristico();
                         vectcaracB = superarbol[1].getVectorCaracteristico();
                         correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
-                        log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );
+                        //log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );//DEPURACION
                         
-                        
+                        if(correlacionAB < 0.75){
+                            log.printLogMessage("<"+contador + ">Servicio A: " + directorio.getFicheros().get(columna) + " OperacionA: "+ arbolA.getServicio() + " [" + arbolA.getPeso() + "] Servicio B: " + directorio.getFicheros().get(renglon) + " OperacionB: " + arbolB.getServicio() + " [" + arbolB.getPeso() + "] correlacion:" + correlacionAB);
+                        }else{
+                            Log.println("<"+contador + ">Servicio A: " + directorio.getFicheros().get(columna) + " OperacionA: "+ arbolA.getServicio() + " [" + arbolA.getPeso() + "] Servicio B: " + directorio.getFicheros().get(renglon) + " OperacionB: " + arbolB.getServicio() + " [" + arbolB.getPeso() + "] correlacion:" + correlacionAB, Log.ANSI_GREEN);
+                        }
                         //Mediciones precision & recall
                             if(correlacionAB >= UMBRAL){
                                 if(arbolA.getPeso()==RELEVANCIA_NONODOS){
