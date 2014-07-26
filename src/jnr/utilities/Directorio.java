@@ -42,6 +42,34 @@ public class Directorio {
     }
     
     
+    public List<String> getNombresFicheroURL(String url, String extension){
+        boolean formatoLista = false;
+        
+        this.ficheros = new ArrayList<String>();
+        try{
+            Document doc = Jsoup.connect(url).get();
+            //System.out.println(doc.toString());
+            for (Element file : doc.select("li a")) {
+                //System.out.println(file.attr("href"));
+                this.ficheros.add(file.text());
+                formatoLista = true;
+            }
+            if(!formatoLista){
+                for (Element file : doc.select("td a")) {
+                    //System.out.println(file.attr("href"));
+                    this.ficheros.add(file.text());
+                }
+            }
+        }catch(IOException ex){
+            log.printLogErrorMessage("Error en la apertura del listado EX:" + ex);
+        }
+        
+        
+        return ficheros;
+    
+    }
+    
+    
     
     
     public static void listarElementosDirectorio(String ruta){        
@@ -72,12 +100,13 @@ public class Directorio {
             Document doc = Jsoup.connect(url).get();
             //System.out.println(doc.toString());
             for (Element file : doc.select("li a")) {
-                System.out.println(file.attr("href"));
+                System.out.println(file.attr("href")+"        -"+file.text());
+                
                 formatoLista = true;
             }
             if(!formatoLista){
                 for (Element file : doc.select("td a")) {
-                    System.out.println(file.attr("href"));
+                    System.out.println(file.attr("href")+"        -"+file.text());
                 }
             }
         }catch(IOException ex){

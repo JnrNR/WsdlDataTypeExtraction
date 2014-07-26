@@ -1,4 +1,4 @@
-package jnr.rdfwsdloperationsmatcher;
+package jnr.operationsmatcher;
 
 
 import com.hp.hpl.jena.rdf.model.Property;

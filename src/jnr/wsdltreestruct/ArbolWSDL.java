@@ -4,13 +4,20 @@ package jnr.wsdltreestruct;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jnr.datatypeextraction.ElementoWSDL;
+import jnr.datatypeextraction.ElementoXMLSchema;
 import jnr.datatypeextraction.InterfazElementoWSDL;
-import jnr.rdfwsdloperationsmatcher.RDFVocabulary;
+import jnr.operationsmatcher.RDFVocabulary;
 import jnr.utilities.Estadistica;
+import jnr.utilities.GraphVizDigraphGPrinter;
 import jnr.utilities.Log;
 
 /**
@@ -22,11 +29,20 @@ public class ArbolWSDL {
     public Log log = new Log(true, true, Log.ANSI_BOLD_GREEN);
     /////////////////////////////////////////////////
     
+    /**
+     * Tipo de ordenamientos:
+     * 1: utiliza como primer criterio de ordenacion el peso de cada nodo y como segundo criterio la cantidad de hijos
+     * 2: utiliza como primer criterio de ordenacion la cantidad de hijos de cada nodo y como segundo criterio el peso.
+     */
+    private int TIPO_ORDENAMIENTO = 1;
+    private boolean ORDENAMIENTO_POR_TIPOMENSAJE = true;
     
     private String RAMIFICACION = "+";
     private String HOJA = "-";
     
     private Model modeloRDF;
+    
+    private String DOTFILE_URL;
     
     private List <List<Rama>> tronco;
     private final String operacion;
@@ -448,6 +464,113 @@ public class ArbolWSDL {
         
     }
     
+    private String getNodesForDotFile(Rama ramaEnTurno, String nodesString){
+        
+        //Variables Auxiliares recorrido arbol
+        Nodo nodoEnTurno;            
+        
+        int noNodos = ramaEnTurno.getNodos().size();
+        String etiqueta;
+        
+        for(int nodo=0;nodo<noNodos;nodo++){//Extrae todos los nodos de una rama
+            nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
+            if(nodoEnTurno.getTipoDeElementoWSDL().toString().equals(ElementoWSDL.TipoDeElementoWSDL.TIPO.toString())){
+                etiqueta = nodoEnTurno.getTipoDeElementoXMLSchema().toString();
+                if(etiqueta.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_COMPLEJO.toString())) etiqueta="COMPLEJO";
+                if(etiqueta.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_SIMPLE.toString())) etiqueta="SIMPLE";
+                if(etiqueta.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.TIPO_PRIMITIVO.toString())) etiqueta="PRIMITV<BR/> <FONT POINT-SIZE=\"10\">"+nodoEnTurno.getTipoDeDato()+"</FONT>";
+                if(etiqueta.equals(ElementoXMLSchema.TipoDeElementoXMLSchema.DESCONOCIDO.toString())) etiqueta="DESC";
+
+            }else{
+                etiqueta = nodoEnTurno.getTipoDeElementoWSDL().toString();
+                if(etiqueta.equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_ENTRADA.toString())) etiqueta="ENTRADA";
+                if(etiqueta.equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_SALIDA.toString())) etiqueta="SALIDA";
+            }
+            
+            if(nodoEnTurno.getRamaDescendiente()!=-1){//Nodo con descenencia (imprime el nodo y analiza la descendencia)
+
+                //nodesString = nodesString + nodoEnTurno.getCodigoEstructural() +";\n";//Sin relleno
+                nodesString = nodesString + nodoEnTurno.getCodigoEstructural() +" [label=\""+ etiqueta +"\"];\n";//Con relleno
+                
+                //Explorar la rama referenciada
+                nodesString = getNodesForDotFile(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()), nodesString);
+                
+            }else{//Nodo sin descendencia
+                    //nodesString = nodesString + nodoEnTurno.getCodigoEstructural() +";\n";//Sin relleno
+                    nodesString = nodesString + nodoEnTurno.getCodigoEstructural() +" [label=<"+ etiqueta +">];\n";//Con relleno
+  
+            }
+        }
+        
+        return nodesString;
+    }
+    
+    private String getStructureForDotFile(Rama ramaEnTurno, String father, String structureString){
+        
+        //Variables Auxiliares recorrido arbol
+        Nodo nodoEnTurno;
+        String nuevoPadre;
+        
+        int noNodos = ramaEnTurno.getNodos().size();
+ 
+        
+        for(int nodo=0;nodo<noNodos;nodo++){//Extrae todos los nodos de una rama
+            nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
+            
+            if(father!=null){
+                structureString = structureString + father + " -> " +  nodoEnTurno.getCodigoEstructural() +";\n";
+            }else{
+                structureString = "";
+            }
+  
+            if(nodoEnTurno.getRamaDescendiente()!=-1){//Nodo con descenencia (imprime el nodo y analiza la descendencia)
+
+                nuevoPadre = nodoEnTurno.getCodigoEstructural();
+                
+                //Explorar la rama referenciada
+                structureString = getStructureForDotFile(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()), nuevoPadre, structureString);   
+            }
+        }
+        
+        return structureString;
+    }
+    
+    public void makeDotFile(String directorio_salida){
+        String nodos, estructura;
+        
+        nodos = getNodesForDotFile(tronco.get(0).get(0), "");
+        estructura = getStructureForDotFile(tronco.get(0).get(0), null, "");
+        
+        //Creando archivo *.dot
+        PrintWriter writer;
+        try {
+            DOTFILE_URL = directorio_salida + servicio + "_" + operacion + ".dot";
+            
+            writer = new PrintWriter(DOTFILE_URL , "UTF-8");
+            writer.println("digraph G");
+            writer.println("{");
+            
+            writer.println(nodos);
+            writer.println(estructura);
+            
+            writer.println("}");
+            writer.close();
+   
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(ArbolWSDL.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(ArbolWSDL.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+    }
+    
+    public void saveTreeImage(String outUrl){
+        GraphVizDigraphGPrinter graphvizPrinter = new GraphVizDigraphGPrinter(outUrl);
+        graphvizPrinter.printDotFile(DOTFILE_URL, servicio + "_" + operacion);
+        
+    }
+    
     public Model getRDFModel(){
         if(modeloRDF == null){
             makeRDFmodel();
@@ -500,36 +623,102 @@ public class ArbolWSDL {
     public void NodosQuicksort(int A[][], int izq, int der) { 
 
         int pivote = A[0][izq]; // tomamos primer elemento como pivote
-        int acarreoDelPivote = A[1][izq];
+        
+        int acarreoDelPivote1 = A[1][izq];
+        int acarreoDelPivote2 = A[2][izq];
         
         int i = izq; // i realiza la búsqueda de izquierda a derecha
         int j = der; // j realiza la búsqueda de derecha a izquierda
         int aux;
-        int auxDeAcarreo;
+        int auxDeAcarreo1, auxDeAcarreo2;
 
         while(i<j){            // mientras no se crucen las búsquedas
             while(A[0][i]<=pivote && i<j) i++; // busca elemento mayor que pivote
                 while(A[0][j]>pivote) j--;     // busca elemento menor que pivote
                     if (i<j) {                 // si no se han cruzado                      
                         aux = A[0][i];         // los intercambia
-                        auxDeAcarreo = A[1][i];
-                        
-                        A[0][i] = A[0][j]; 
+                        auxDeAcarreo1 = A[1][i];
+                        auxDeAcarreo2 = A[2][i];
+                                                
+                        A[0][i] = A[0][j];
                         A[1][i] = A[1][j];
+                        A[2][i] = A[2][j];
                         
                         A[0][j] = aux;
-                        A[1][j] = auxDeAcarreo;
+                        A[1][j] = auxDeAcarreo1;
+                        A[2][j] = auxDeAcarreo2;
                     } 
         } 
         A[0][izq] = A[0][j]; // se coloca el pivote en su lugar de forma que tendremos
         A[1][izq] = A[1][j];
+        A[2][izq] = A[2][j];
         
         A[0][j] = pivote; // los menores a su izquierda y los mayores a su derecha
-        A[1][j] = acarreoDelPivote;
+        A[1][j] = acarreoDelPivote1;
+        A[2][j] = acarreoDelPivote2;
         if(izq<j-1)
             NodosQuicksort(A,izq,j-1); // ordenamos subarray izquierdo
         if(j+1 <der)
             NodosQuicksort(A,j+1,der); // ordenamos subarray derecho
+    }
+    
+    public void ordenamientoSegundoCriterio(int A[][]){
+        int longitudA = A[1].length;
+        int indice, repetidos=0;
+        int buffer = -2;
+        
+        for(int i=0; i<longitudA; i++){
+
+            if(buffer == A[0][i]){
+                repetidos++;
+                
+                if(repetidos!=0 && i==longitudA-1){
+                    int arregloAux[][] = new int[3][repetidos+1];
+                    //Construyendo arregloAux
+                    indice = i-repetidos;
+                    for(int j=0; j<repetidos+1; j++){
+                        arregloAux[0][j]= A[1][indice+j];
+                        arregloAux[1][j]= A[0][indice+j];
+                        arregloAux[2][j]= A[2][indice+j];
+                    }
+                    //ordenando subseccion
+                    NodosQuicksort(arregloAux, 0, repetidos);
+                    //Modificando vector A con el ordenamiento del arreglo auxiliar
+                    for(int j=0; j<repetidos+1; j++){
+                        A[1][indice+j] = arregloAux[0][j];
+                        A[0][indice+j] = arregloAux[1][j];
+                        A[2][indice+j] = arregloAux[2][j];                  
+                    }
+                }  
+                
+                
+            }else{
+                if(repetidos!=0){
+                    int arregloAux[][] = new int[3][repetidos+1];
+                    //Construyendo arregloAux
+                    indice = i-(repetidos+1);
+                    for(int j=0; j<repetidos+1; j++){
+                        System.out.println("j:"+j+" indice+j:" + (indice+j) + " repetidos:" +repetidos + " i:"+ i+ " longitudA:"+ longitudA);
+                        
+                        arregloAux[0][j]= A[1][indice+j];
+                        arregloAux[1][j]= A[0][indice+j];
+                        arregloAux[2][j]= A[2][indice+j];
+                    }
+                    //ordenando subseccion
+                    NodosQuicksort(arregloAux, 0, repetidos);
+                    //Modificando vector A con el ordenamiento del arreglo auxiliar
+                    for(int j=0; j<repetidos+1; j++){
+                        A[1][indice+j] = arregloAux[0][j];
+                        A[0][indice+j] = arregloAux[1][j];
+                        A[2][indice+j] = arregloAux[2][j];                  
+                    }
+                }         
+                buffer = A[0][i];
+                repetidos=0;
+            }
+            
+        }
+
     }
     
     
@@ -542,19 +731,31 @@ public class ArbolWSDL {
     private Rama ordenarRama(Rama rama){
         int[][] arregloNodos;
         int noDeNodos = rama.getNodos().size();
-        arregloNodos = new int[2][noDeNodos];
+        arregloNodos = new int[3][noDeNodos];
         
         int i;
         for(i=0; i<noDeNodos; i++){
             //Almacenando posicion anterior
-                arregloNodos[1][i] = i;
-            //Almacenando numero de hijos
+                arregloNodos[2][i] = i;
+                
+            if(TIPO_ORDENAMIENTO == 1){
+                //Almacenando numero de hijos
+                arregloNodos[1][i] = rama.getNodos().get(i).getNumeroDeHijos();
+                //Almacenando peso
+                arregloNodos[0][i] = rama.getNodos().get(i).getPeso();  
+            }else if(TIPO_ORDENAMIENTO == 2){
+                //Almacenando numero de hijos
                 arregloNodos[0][i] = rama.getNodos().get(i).getNumeroDeHijos();
+                //Almacenando peso
+                arregloNodos[1][i] = rama.getNodos().get(i).getPeso();
+            }    
+            
         }
         
         
         ////Ordenamiento
             NodosQuicksort(arregloNodos, 0, noDeNodos-1);
+            ordenamientoSegundoCriterio(arregloNodos);
         ////
         
         Rama ramaOrdenada = new Rama(rama.getId(), rama.getProfundidad(), rama.getRamaAntecesora(), rama.getNodoAntecesor());
@@ -562,17 +763,54 @@ public class ArbolWSDL {
         
         //Ingresando los nodos ordenados a la nueva rama en forma decreciente
         for(i=(noDeNodos-1); 0<=i; i--){
-            anteriorPosicion = arregloNodos[1][i];
+        //for(i=0; i<noDeNodos; i++){
+                       
+            anteriorPosicion = arregloNodos[2][i];
+            
+            if(ORDENAMIENTO_POR_TIPOMENSAJE && (rama.getProfundidad() == 1) && (i == (noDeNodos-1))){
+                
+                if(!rama.getNodos().get(anteriorPosicion).getTipoDeElementoWSDL().equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_ENTRADA)){
+                    
+                    ramaOrdenada.insertarNodo(rama.getNodos().get(arregloNodos[2][i-1]));
+                    ramaOrdenada.insertarNodo(rama.getNodos().get(arregloNodos[2][i]));
+                    return ramaOrdenada;
+                }
+            }
+            
             ramaOrdenada.insertarNodo(rama.getNodos().get(anteriorPosicion));
         }
         
         return ramaOrdenada;
     }
     
+    private void setCodigosEstructurales(Rama ramaEnTurno){
+        
+        //Variables Auxiliares recorrido arbol
+        Nodo nodoEnTurno;            
+        
+        int noNodos = ramaEnTurno.getNodos().size();
+ 
+        
+        for(int nodo=0;nodo<noNodos;nodo++){//Extrae todos los nodos de una rama
+            nodoEnTurno = ramaEnTurno.getNodos().get(nodo);
+
+            if(nodoEnTurno.getRamaDescendiente()!=-1){//Nodo con descenencia (imprime el nodo y analiza la descendencia)
+                nodoEnTurno.setCodigoEstructural(ramaEnTurno.getProfundidad(), ramaEnTurno.getId(), nodo);
+                //Explorar la rama referenciada
+                setCodigosEstructurales(tronco.get(ramaEnTurno.getProfundidad()+1).get(nodoEnTurno.getRamaDescendiente()));
+                
+            }else{//Nodo sin descendencia
+                    nodoEnTurno.setCodigoEstructural(ramaEnTurno.getProfundidad(), ramaEnTurno.getId(), nodo);
+            }
+        }
+    }
+    
+    
     public void ordenar(){
         parametrizarArbol(tronco.get(0).get(0));
         pesarArbol(tronco.get(0).get(0).getNodos().get(0), 0);
         ordenarArbol();
+        setCodigosEstructurales(tronco.get(0).get(0));
     }
     
     /**
@@ -620,6 +858,43 @@ public class ArbolWSDL {
         
         return superArboles;
     }
+    
+    
+    /**
+     * 
+     * @param arbolA
+     * @param arbolB
+     * @param tipo Representa la raiz por donde se comenzaran los arboles </br>
+     *             1 genera árboles entre mensajes se entrada
+     *             2 genera árboles entre mensajes de salida
+     * @return 
+     */
+    public static ArbolWSDL[] generarSuperArboles(ArbolWSDL arbolA, ArbolWSDL arbolB, int tipoMensaje){
+        String rutaRaiz = "N0R0n0";
+        
+        ArbolWSDL[] superArboles = new ArbolWSDL[2];
+        
+        ArbolWSDL superA; 
+        ArbolWSDL superB; 
+                 
+        if(tipoMensaje == 1){
+            superA = new ArbolWSDL( new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, rutaRaiz) , "SuperArbolA", arbolA.getTronco().get(1).get(0).getNodos().get(0).getNumeroDeHijos(), arbolA.getTronco().get(1).get(0).getNodos().get(0).getPeso());
+            superB = new ArbolWSDL( new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, rutaRaiz) , "SuperArbolB", arbolB.getTronco().get(1).get(0).getNodos().get(0).getNumeroDeHijos(), arbolB.getTronco().get(1).get(0).getNodos().get(0).getPeso());
+        }else if(tipoMensaje == 2){
+            superA = new ArbolWSDL( new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, rutaRaiz) , "SuperArbolA", arbolA.getTronco().get(1).get(0).getNodos().get(1).getNumeroDeHijos(), arbolA.getTronco().get(1).get(0).getNodos().get(1).getPeso());
+            superB = new ArbolWSDL( new ElementoWSDL(ElementoWSDL.TipoDeElementoWSDL.ESTRUCTURA, rutaRaiz) , "SuperArbolB", arbolB.getTronco().get(1).get(0).getNodos().get(1).getNumeroDeHijos(), arbolB.getTronco().get(1).get(0).getNodos().get(1).getPeso());
+        }else{
+            return null;
+        }
+               
+        generarSuperRamas(superA, superB, arbolA, arbolB, arbolA.getTronco().get(1).get(0), arbolB.getTronco().get(1).get(0), rutaRaiz);    
+    
+        superArboles[0] = superA;
+        superArboles[1] = superB;
+        
+        return superArboles;
+    }
+    
     private static void generarSuperRamas(ArbolWSDL superArbolA, ArbolWSDL superArbolB, ArbolWSDL arbolA, ArbolWSDL arbolB, Rama ramaA, Rama ramaB, String rutaInsercion){
         //Depuración
         Log log = new Log(false, false, Log.ANSI_GREEN);
