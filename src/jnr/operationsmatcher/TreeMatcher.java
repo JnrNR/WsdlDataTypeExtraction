@@ -243,6 +243,179 @@ public class TreeMatcher {
     
     /*********************************************************************************PARA WEB
      */
+    public List<MatcherResult> matchWSDLOnetoOne_URL(String url_WSDL_A, String url_WSDL_B){
+        List<MatcherResult> resultados = new ArrayList<MatcherResult>();
+
+            
+            //Extraccion de operaciones para el servicio A
+                WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url_WSDL_A);
+
+                List<ArbolWSDL> operacionesWSDLservicioA;
+                operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
+                
+                //Ordenando los arboles de las operaciones
+                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                    arbolA.ordenar();
+                }
+
+         //Extraccion de operaciones para el servicio A
+                WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url_WSDL_B);
+                
+                List<ArbolWSDL> operacionesWSDLservicioB;
+                operacionesWSDLservicioB = wsdlEstructuradoB.getArbolesDeOperaciones();
+                
+                //Ordenando los arboles de las operaciones
+                for(ArbolWSDL arbolB : operacionesWSDLservicioB){
+                    arbolB.ordenar();
+                }
+                
+                
+                int contador = 0;
+                //Comparando las operaciones del servicio A con las operaciones del servicio B
+                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                    TOTAL_OPERACIONES++;
+                    
+                    for(ArbolWSDL arbolB : operacionesWSDLservicioB){
+                        //log.printLogMessage("COMPARANDO OPERACIONES:" + arbolA.getServicio() + "[" + arbolA.getPeso() + "]" + arbolB.getServicio() + "[" + arbolB.getPeso() + "]");//DEPURACION
+                        
+                        contador++;
+                        
+                        //Comparando operacionA en turno con operacion B en turno
+                        ArbolWSDL superarbol[];
+                        superarbol = ArbolWSDL.generarSuperArboles(arbolA, arbolB);
+                        List<Float> vectcaracA,vectcaracB; 
+                        float correlacionAB;
+                        vectcaracA = superarbol[0].getVectorCaracteristico();
+                        vectcaracB = superarbol[1].getVectorCaracteristico();
+                        correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
+                        //log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );//DEPURACION
+                        
+                        if(correlacionAB < 0.75){
+                            log.printLogMessage("<"+contador + ">");
+                            log.printLogMessage("WSDL_A:" + url_WSDL_A);
+                            log.printLogMessage("WSDL_B:" + url_WSDL_B);
+                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");                           
+                            log.printLogMessage("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]");
+                            log.printLogMessage("       Correlacion:<<<"+correlacionAB+">>>");
+                            //Agregando nodo
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
+                            
+                            
+                        }else{
+                            Log.println("<"+contador + ">", Log.ANSI_GREEN);
+                            Log.println("WSDL_A:" + url_WSDL_A, Log.ANSI_GREEN);
+                            Log.println("WSDL_B:" + url_WSDL_B, Log.ANSI_GREEN);
+                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);                          
+                            Log.println("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]", Log.ANSI_GREEN);
+                            Log.println("       Correlacion:<<<"+correlacionAB+">>>", Log.ANSI_GREEN);
+                            //Agregando nodo
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
+                            
+                        }                 
+                        
+                    }
+                }
+        
+        return resultados;
+        
+    }
+    
+    
+    
+    public List<MatcherResult> matchWSDLAndDirectory_URL(String url_WSDL, String url_Repository){
+        List<MatcherResult> resultados = new ArrayList<MatcherResult>();
+        
+        List ficheros;
+        
+        Directorio directorio = new Directorio();
+        ficheros = directorio.getNombresFicheroURL(url_Repository, "wsdl");
+        int noArchivos = ficheros.size();
+        
+        
+        int contador=0;
+
+            
+            //Extraccion de operaciones para el servicio A
+                WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url_WSDL);//Para Windows
+
+                List<ArbolWSDL> operacionesWSDLservicioA;
+                operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
+                
+                //Ordenando los arboles de las operaciones
+                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                    arbolA.ordenar();
+                }
+                contador=1;
+            
+            for(int i=0; i<noArchivos; i++){//Control de renglones
+                //log.printLogMessage("COMPARANDO SERVICIOS:\t" + directorio.getFicheros().get(columna) + "\t" + directorio.getFicheros().get(renglon) + "\n\n");//DEPURACION
+                
+                WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url_Repository+"/"+ficheros.get(i));//Para Windows
+                //WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url_Repository+"/"+directorio.getFicheros().get(i));//Para Mac
+                
+                List<ArbolWSDL> operacionesWSDLservicioB;
+                operacionesWSDLservicioB = wsdlEstructuradoB.getArbolesDeOperaciones();
+                
+                //Ordenando los arboles de las operaciones
+                for(ArbolWSDL arbolB : operacionesWSDLservicioB){
+                    arbolB.ordenar();
+                }
+                
+                //Comparando las operaciones del servicio A con las operaciones del servicio B
+                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                    TOTAL_OPERACIONES++;
+                    
+                    for(ArbolWSDL arbolB : operacionesWSDLservicioB){
+                        //log.printLogMessage("COMPARANDO OPERACIONES:" + arbolA.getServicio() + "[" + arbolA.getPeso() + "]" + arbolB.getServicio() + "[" + arbolB.getPeso() + "]");//DEPURACION
+                        
+                        contador++;
+                        
+                        //Comparando operacionA en turno con operacion B en turno
+                        ArbolWSDL superarbol[];
+                        superarbol = ArbolWSDL.generarSuperArboles(arbolA, arbolB);
+                        List<Float> vectcaracA,vectcaracB; 
+                        float correlacionAB;
+                        vectcaracA = superarbol[0].getVectorCaracteristico();
+                        vectcaracB = superarbol[1].getVectorCaracteristico();
+                        correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
+                        //log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );//DEPURACION
+                        
+                        if(correlacionAB < 0.75){
+                            log.printLogMessage("<"+contador + ">");
+                            log.printLogMessage("WSDL_A:" + url_WSDL);
+                            log.printLogMessage("WSDL_B:" + ficheros.get(i));
+                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");                           
+                            log.printLogMessage("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]");
+                            log.printLogMessage("       Correlacion:<<<"+correlacionAB+">>>");
+                            //Agregando nodo
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
+                            
+                            
+                        }else{
+                            Log.println("<"+contador + ">", Log.ANSI_GREEN);
+                            Log.println("WSDL_A:" + url_WSDL, Log.ANSI_GREEN);
+                            Log.println("WSDL_B:" + ficheros.get(i), Log.ANSI_GREEN);
+                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);                          
+                            Log.println("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]", Log.ANSI_GREEN);
+                            Log.println("       Correlacion:<<<"+correlacionAB+">>>", Log.ANSI_GREEN);
+                            //Agregando nodo
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
+                            
+                        }                 
+                        
+                    }
+                }
+                
+                
+            }
+        
+        return resultados;
+        
+    }
+        
+    
+        
+    
     public List<MatcherResult> matchWSDLDirectory_URL(String url){
         List<MatcherResult> resultados = new ArrayList<MatcherResult>();
         
@@ -335,8 +508,6 @@ public class TreeMatcher {
         return resultados;
         
     }
-    
-    
     
     /*********************************************************************************
      */
