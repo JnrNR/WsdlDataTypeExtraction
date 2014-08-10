@@ -5,6 +5,8 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Resource;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -565,6 +567,33 @@ public class ArbolWSDL {
         
     }
     
+    public String makeDotGoogleChartLink(boolean etiquetaAmp){
+        String nodos, estructura;
+        String link;
+        
+        nodos = getNodesForDotFile(tronco.get(0).get(0), "");
+        estructura = getStructureForDotFile(tronco.get(0).get(0), null, "");
+        
+        //Creando link
+            link = "digraph G";
+            link = link + "\n{";
+            link = link + "\n" + nodos;
+            link = link + "\n" + estructura;
+            link = link + "\n}";
+
+            link = link.replace("\n", "");
+        
+            if(etiquetaAmp){
+                link = "https://chart.googleapis.com/chart?cht=gv&amp;chl=" + link;
+            }else{
+                link = "https://chart.googleapis.com/chart?cht=gv&chl=" + link;
+            }
+            
+        return link;
+        
+    }
+    
+    
     public void saveTreeImage(String outUrl){
         GraphVizDigraphGPrinter graphvizPrinter = new GraphVizDigraphGPrinter(outUrl);
         graphvizPrinter.printDotFile(DOTFILE_URL, servicio + "_" + operacion);
@@ -592,6 +621,26 @@ public class ArbolWSDL {
         
         
     }
+    
+    public void alamcenarSerializacionRDF_xml(String rutaAlmacenamiento){
+        if(modeloRDF == null){
+            makeRDFmodel();
+        }
+        parametrizarArbol(tronco.get(0).get(0));
+        ordenarArbol();
+        pesarArbol(tronco.get(0).get(0).getNodos().get(0), 0);
+        try {
+            //Escritura RDF
+            OutputStream output = new FileOutputStream(rutaAlmacenamiento+"/"+servicio + "_" + operacion+".rdf");
+            modeloRDF.write(output);
+            
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(ArbolWSDL.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    
+    }
+    
     
     /**
      * Obtiene la cantidad de hijos que posee cada nodo y las almacena en la variable numeroDeHijos de cada objeto nodo.
@@ -728,7 +777,7 @@ public class ArbolWSDL {
      * @param rama Rama a ordenar.
      * @return Rama ordenada
      */
-    private Rama ordenarRama(Rama rama){
+    private Rama ordenarRama(Rama rama, boolean porMensajes){
         int[][] arregloNodos;
         int noDeNodos = rama.getNodos().size();
         arregloNodos = new int[3][noDeNodos];
@@ -766,14 +815,15 @@ public class ArbolWSDL {
         //for(i=0; i<noDeNodos; i++){
                        
             anteriorPosicion = arregloNodos[2][i];
-            
-            if(ORDENAMIENTO_POR_TIPOMENSAJE && (rama.getProfundidad() == 1) && (i == (noDeNodos-1))){
-                
-                if(!rama.getNodos().get(anteriorPosicion).getTipoDeElementoWSDL().equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_ENTRADA)){
-                    
-                    ramaOrdenada.insertarNodo(rama.getNodos().get(arregloNodos[2][i-1]));
-                    ramaOrdenada.insertarNodo(rama.getNodos().get(arregloNodos[2][i]));
-                    return ramaOrdenada;
+            if(porMensajes){
+                if(ORDENAMIENTO_POR_TIPOMENSAJE && (rama.getProfundidad() == 1) && (i == (noDeNodos-1))){
+
+                    if(!rama.getNodos().get(anteriorPosicion).getTipoDeElementoWSDL().equals(ElementoWSDL.TipoDeElementoWSDL.MENSAJE_ENTRADA)){
+
+                        ramaOrdenada.insertarNodo(rama.getNodos().get(arregloNodos[2][i-1]));
+                        ramaOrdenada.insertarNodo(rama.getNodos().get(arregloNodos[2][i]));
+                        return ramaOrdenada;
+                    }
                 }
             }
             
@@ -813,6 +863,13 @@ public class ArbolWSDL {
         setCodigosEstructurales(tronco.get(0).get(0));
     }
     
+    public void ordenarPorMensajes(){
+        parametrizarArbol(tronco.get(0).get(0));
+        pesarArbol(tronco.get(0).get(0).getNodos().get(0), 0);
+        ordenarArbolPorMensjaes();
+        setCodigosEstructurales(tronco.get(0).get(0));
+    }
+    
     /**
      * Ordena de izquierda a derecha los nodos con mayor numero de hijos.<br>
      * El rodenamiento se realiza para todas las ramas del arbol.
@@ -821,11 +878,21 @@ public class ArbolWSDL {
         
         for(int nivel=0; nivel<tronco.size(); nivel++){
             for(int rama=0; rama<tronco.get(nivel).size(); rama++){
-                tronco.get(nivel).get(rama).setRamaPorCopia(ordenarRama(tronco.get(nivel).get(rama)));
+                tronco.get(nivel).get(rama).setRamaPorCopia(ordenarRama(tronco.get(nivel).get(rama), false));
             }
         }
         
-    }    
+    }
+    
+    private void ordenarArbolPorMensjaes(){
+        
+        for(int nivel=0; nivel<tronco.size(); nivel++){
+            for(int rama=0; rama<tronco.get(nivel).size(); rama++){
+                tronco.get(nivel).get(rama).setRamaPorCopia(ordenarRama(tronco.get(nivel).get(rama), true));
+            }
+        }
+        
+    } 
     
     /**
      * Obtiene el peso de un arbol.<br>

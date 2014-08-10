@@ -124,11 +124,13 @@ public class TreeMatcher {
         //comparador.matchWSDLDirectory("D:\\CINVESTAV\\Tesis\\servicios\\precisionREcall");//Para Windows 
         //comparador.getOperacionesDirectorio("D:\\CINVESTAV\\Tesis\\servicios\\precisionREcall\\patron");//Para Windows 
         //comparador.matchWSDLDirectory("/Users/JNR/CINVESTAV/Tesis/servicios/pruebas2");//Para Mac
-        //comparador.matchWSDLAndDirectory("D:\\CINVESTAV\\Tesis\\servicios\\precisionRecall\\patron\\1personbicycle4wheeledcar_price_service.wsdl", "D:\\CINVESTAV\\Tesis\\servicios\\precisionRecall\\repositorio");
-        comparador.matchWSDLDirectory_URL("http://148.247.102.37:8080/wsdlcomparison/servicios/precisionRecall/repositorio/");
+        comparador.matchWSDLAndDirectory("D:\\CINVESTAV\\Tesis\\servicios\\precisionRecall\\patron\\1personbicycle4wheeledcar_price_service.wsdl", "D:\\CINVESTAV\\Tesis\\servicios\\precisionRecall\\repositorio");
+        //comparador.matchWSDLDirectory_URL("http://148.247.102.37:8080/wsdlcomparison/servicios/precisionRecall/repositorio/");
+        //comparador.getRDFsFromDirectory("D:\\CINVESTAV\\Tesis\\servicios\\precisionRecall\\repositorio", ".");
     }
     
-    public void matchWSDLDirectory(String url){
+    public List<MatcherResult> matchWSDLDirectory(String url){
+        List<MatcherResult> resultados = new ArrayList<MatcherResult>();
 
         Directorio directorio = new Directorio();
         directorio.buscarElementosDirectorio(url);
@@ -139,8 +141,8 @@ public class TreeMatcher {
         for(int columna=0; columna<noArchivos-1; columna++ ){// Control de columnas
             
             //Extraccion de operaciones para el servicio A
-                WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(columna));//Para Windows
-                //WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"/"+directorio.getFicheros().get(columna));//Para Mac
+                //WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(columna));//Para Windows
+                WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"/"+directorio.getFicheros().get(columna));//Para Mac
                 List<ArbolWSDL> operacionesWSDLservicioA;
                 operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
                 
@@ -153,8 +155,8 @@ public class TreeMatcher {
             for(int renglon=columna+1; renglon<noArchivos; renglon++){//Control de renglones
                 //log.printLogMessage("COMPARANDO SERVICIOS:\t" + directorio.getFicheros().get(columna) + "\t" + directorio.getFicheros().get(renglon) + "\n\n");//DEPURACION
                 
-                WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(renglon));//Para Windows
-                //WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url+"/"+directorio.getFicheros().get(renglon));//Para Mac
+                //WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(renglon));//Para Windows
+                WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url+"/"+directorio.getFicheros().get(renglon));//Para Mac
                 
                 List<ArbolWSDL> operacionesWSDLservicioB;
                 operacionesWSDLservicioB = wsdlEstructuradoB.getArbolesDeOperaciones();
@@ -171,57 +173,60 @@ public class TreeMatcher {
                     for(ArbolWSDL arbolB : operacionesWSDLservicioB){
                         //log.printLogMessage("COMPARANDO OPERACIONES:" + arbolA.getServicio() + "[" + arbolA.getPeso() + "]" + arbolB.getServicio() + "[" + arbolB.getPeso() + "]");//DEPURACION
                         
-                        //Mediciones precision & recall
-                            if(arbolA.getPeso()==RELEVANCIA_NONODOS){
-                                metrica.incrementRegistrosRelevantes();
-                            }
-                            if(arbolB.getPeso()==RELEVANCIA_NONODOS){
-                                metrica.incrementRegistrosRelevantes();
-                            }
-                            
-                        ////////////////////////////////////////////////////////
                         contador++;
                         
+                        arbolA.ordenar();
+                        arbolB.ordenar();
                         //Comparando operacionA en turno con operacion B en turno
-                        ArbolWSDL superarbol[];
+                        ArbolWSDL superarbol[], superarbolEntrada[], superarbolSalida[];
                         superarbol = ArbolWSDL.generarSuperArboles(arbolA, arbolB);
-                        List<Float> vectcaracA,vectcaracB; 
-                        float correlacionAB;
+                        
+                        List<Float> vectcaracA,vectcaracB, vectcaracAEntrada, vectcaracBEntrada, vectcaracASalida, vectcaracBSalida; 
+                        float correlacionAB, correlacionABEntrada, correlacionABSalida;
                         vectcaracA = superarbol[0].getVectorCaracteristico();
                         vectcaracB = superarbol[1].getVectorCaracteristico();
+                        
+                        
+                        arbolA.ordenarPorMensajes();
+                        arbolB.ordenarPorMensajes();
+                        superarbolEntrada = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 1);
+                        superarbolSalida = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 2);
+                        vectcaracAEntrada = superarbolEntrada[0].getVectorCaracteristico();
+                        vectcaracBEntrada = superarbolEntrada[1].getVectorCaracteristico();
+                        vectcaracASalida = superarbolSalida[0].getVectorCaracteristico();
+                        vectcaracBSalida = superarbolSalida[1].getVectorCaracteristico();
+                        
                         correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
+                        correlacionABEntrada = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracAEntrada, vectcaracBEntrada);
+                        correlacionABSalida = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracASalida, vectcaracBSalida);
                         //log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );//DEPURACION
                         
+                        
+                        String linkGoogleChartA, linkGoogleChartB;
+                        linkGoogleChartA = arbolA.makeDotGoogleChartLink(false);
+                        linkGoogleChartB =  arbolB.makeDotGoogleChartLink(false);
+                        
+
                         if(correlacionAB < 0.75){
                             log.printLogMessage("<"+contador + ">");
                             log.printLogMessage("WSDL_A:" + directorio.getFicheros().get(columna));
                             log.printLogMessage("WSDL_B:" + directorio.getFicheros().get(renglon));
-                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");                           
+                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");
                             log.printLogMessage("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]");
-                            log.printLogMessage("       Correlacion:<<<"+correlacionAB+">>>");
+                            log.printLogMessage("       Correlacion AB:<<<"+correlacionAB+">>>\tCorrelacion Entradas:<<<"+correlacionABEntrada+">>>\tCorrelacion Salidas:<<<"+correlacionABSalida+">>>");
+                            //Agregando nodo
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), linkGoogleChartA, linkGoogleChartB, correlacionAB, correlacionABEntrada, correlacionABSalida));
                             
                         }else{
                             Log.println("<"+contador + ">", Log.ANSI_GREEN);
                             Log.println("WSDL_A:" + directorio.getFicheros().get(columna), Log.ANSI_GREEN);
                             Log.println("WSDL_B:" + directorio.getFicheros().get(renglon), Log.ANSI_GREEN);
-                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);                          
+                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);
                             Log.println("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]", Log.ANSI_GREEN);
-                            Log.println("       Correlacion:<<<"+correlacionAB+">>>", Log.ANSI_GREEN);
+                            log.printLogMessage("       Correlacion AB:<<<"+correlacionAB+">>>\tCorrelacion Entradas:<<<"+correlacionABEntrada+">>>\tCorrelacion Salidas:<<<"+correlacionABSalida+">>>");
+                            //Agregando nodo
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), linkGoogleChartA, linkGoogleChartB, correlacionAB, correlacionABEntrada, correlacionABSalida));
                         }
-                        //Mediciones precision & recall
-                            if(correlacionAB >= UMBRAL){
-                                if(arbolA.getPeso()==RELEVANCIA_NONODOS){
-                                    metrica.incrementA();
-                                }else{
-                                    metrica.incrementC();
-                                }
-                                if(arbolB.getPeso()==RELEVANCIA_NONODOS){
-                                    metrica.incrementA();
-                                }else{
-                                    metrica.incrementC();
-                                }
-                            }
-                        ////////////////////////////////////////////////////////
                         
                         
                     }
@@ -231,14 +236,34 @@ public class TreeMatcher {
             }
         }
         
-        //Mediciones precision & recall
-            metrica.setNoRegistros(TOTAL_OPERACIONES);
-            log.printLogMessage("TOTAL DE OPERACIONES:" + TOTAL_OPERACIONES + " REGISTROS RELEVANTES:"+metrica.getRegistrosRelevantes());
-            log.printLogMessage("Valores metrica  A:" +metrica.getA()+ " B:" +metrica.getB()+ " C:" +metrica.getC());
-            log.printLogMessage("<<<<<<<<<<PRECISION:" + metrica.getPrecision() + " RECALL:" + metrica.getRecall() + ">>>>>>>>>>");
-        ////////////////////////////////////////////////////////
+        return resultados;
     }
     
+    
+    
+     public void getRDFsFromDirectory(String url, String RDFstorageUrl){
+
+        Directorio directorio = new Directorio();
+        directorio.buscarElementosDirectorio(url);
+        int noArchivos = directorio.getFicheros().size();
+
+        //Determinando las comparativas a realizar por medio de una matriz triangular inferiror.
+        for(int wsdl=0; wsdl<noArchivos; wsdl++ ){// Control de columnas
+            
+            //Extraccion de operaciones por servicio
+                //WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"\\"+directorio.getFicheros().get(wsdl));//Para Windows
+                WSDLExtractStructure wsdlEstructuradoA = new WSDLExtractStructure(url+"/"+directorio.getFicheros().get(wsdl));//Para Mac
+                List<ArbolWSDL> operacionesWSDLservicioA;
+                operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
+                
+                //Ordenando los arboles de las operaciones
+                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                    arbolA.ordenar();
+                    arbolA.alamcenarSerializacionRDF_xml(RDFstorageUrl);
+                }            
+
+        }
+    }
     
     
     /*********************************************************************************PARA WEB
@@ -280,38 +305,58 @@ public class TreeMatcher {
                         
                         contador++;
                         
+                        arbolA.ordenar();
+                        arbolB.ordenar();
                         //Comparando operacionA en turno con operacion B en turno
-                        ArbolWSDL superarbol[];
+                        ArbolWSDL superarbol[], superarbolEntrada[], superarbolSalida[];
                         superarbol = ArbolWSDL.generarSuperArboles(arbolA, arbolB);
-                        List<Float> vectcaracA,vectcaracB; 
-                        float correlacionAB;
+                        
+                        List<Float> vectcaracA,vectcaracB, vectcaracAEntrada, vectcaracBEntrada, vectcaracASalida, vectcaracBSalida; 
+                        float correlacionAB, correlacionABEntrada, correlacionABSalida;
                         vectcaracA = superarbol[0].getVectorCaracteristico();
                         vectcaracB = superarbol[1].getVectorCaracteristico();
+                        
+                        
+                        arbolA.ordenarPorMensajes();
+                        arbolB.ordenarPorMensajes();
+                        superarbolEntrada = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 1);
+                        superarbolSalida = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 2);
+                        vectcaracAEntrada = superarbolEntrada[0].getVectorCaracteristico();
+                        vectcaracBEntrada = superarbolEntrada[1].getVectorCaracteristico();
+                        vectcaracASalida = superarbolSalida[0].getVectorCaracteristico();
+                        vectcaracBSalida = superarbolSalida[1].getVectorCaracteristico();
+                        
                         correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
+                        correlacionABEntrada = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracAEntrada, vectcaracBEntrada);
+                        correlacionABSalida = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracASalida, vectcaracBSalida);
                         //log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );//DEPURACION
                         
+                        
+                        String linkGoogleChartA, linkGoogleChartB;
+                        linkGoogleChartA = arbolA.makeDotGoogleChartLink(false);
+                        linkGoogleChartB =  arbolB.makeDotGoogleChartLink(false);
+                        
+
                         if(correlacionAB < 0.75){
                             log.printLogMessage("<"+contador + ">");
                             log.printLogMessage("WSDL_A:" + url_WSDL_A);
                             log.printLogMessage("WSDL_B:" + url_WSDL_B);
-                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");                           
+                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");
                             log.printLogMessage("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]");
-                            log.printLogMessage("       Correlacion:<<<"+correlacionAB+">>>");
+                            log.printLogMessage("       Correlacion AB:<<<"+correlacionAB+">>>\tCorrelacion Entradas:<<<"+correlacionABEntrada+">>>\tCorrelacion Salidas:<<<"+correlacionABSalida+">>>");
                             //Agregando nodo
-                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
-                            
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), linkGoogleChartA, linkGoogleChartB, correlacionAB, correlacionABEntrada, correlacionABSalida));
                             
                         }else{
                             Log.println("<"+contador + ">", Log.ANSI_GREEN);
                             Log.println("WSDL_A:" + url_WSDL_A, Log.ANSI_GREEN);
                             Log.println("WSDL_B:" + url_WSDL_B, Log.ANSI_GREEN);
-                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);                          
+                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);
                             Log.println("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]", Log.ANSI_GREEN);
-                            Log.println("       Correlacion:<<<"+correlacionAB+">>>", Log.ANSI_GREEN);
+                            log.printLogMessage("       Correlacion AB:<<<"+correlacionAB+">>>\tCorrelacion Entradas:<<<"+correlacionABEntrada+">>>\tCorrelacion Salidas:<<<"+correlacionABSalida+">>>");
                             //Agregando nodo
-                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
-                            
-                        }                 
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), linkGoogleChartA, linkGoogleChartB, correlacionAB, correlacionABEntrada, correlacionABSalida));
+                        }
                         
                     }
                 }
@@ -370,38 +415,58 @@ public class TreeMatcher {
                         
                         contador++;
                         
+                        arbolA.ordenar();
+                        arbolB.ordenar();
                         //Comparando operacionA en turno con operacion B en turno
-                        ArbolWSDL superarbol[];
+                        ArbolWSDL superarbol[], superarbolEntrada[], superarbolSalida[];
                         superarbol = ArbolWSDL.generarSuperArboles(arbolA, arbolB);
-                        List<Float> vectcaracA,vectcaracB; 
-                        float correlacionAB;
+                        
+                        List<Float> vectcaracA,vectcaracB, vectcaracAEntrada, vectcaracBEntrada, vectcaracASalida, vectcaracBSalida; 
+                        float correlacionAB, correlacionABEntrada, correlacionABSalida;
                         vectcaracA = superarbol[0].getVectorCaracteristico();
                         vectcaracB = superarbol[1].getVectorCaracteristico();
+                        
+                        
+                        arbolA.ordenarPorMensajes();
+                        arbolB.ordenarPorMensajes();
+                        superarbolEntrada = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 1);
+                        superarbolSalida = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 2);
+                        vectcaracAEntrada = superarbolEntrada[0].getVectorCaracteristico();
+                        vectcaracBEntrada = superarbolEntrada[1].getVectorCaracteristico();
+                        vectcaracASalida = superarbolSalida[0].getVectorCaracteristico();
+                        vectcaracBSalida = superarbolSalida[1].getVectorCaracteristico();
+                        
                         correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
+                        correlacionABEntrada = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracAEntrada, vectcaracBEntrada);
+                        correlacionABSalida = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracASalida, vectcaracBSalida);
                         //log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );//DEPURACION
                         
+                        
+                        String linkGoogleChartA, linkGoogleChartB;
+                        linkGoogleChartA = arbolA.makeDotGoogleChartLink(false);
+                        linkGoogleChartB =  arbolB.makeDotGoogleChartLink(false);
+                        
+
                         if(correlacionAB < 0.75){
                             log.printLogMessage("<"+contador + ">");
                             log.printLogMessage("WSDL_A:" + url_WSDL);
                             log.printLogMessage("WSDL_B:" + ficheros.get(i));
-                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");                           
+                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");
                             log.printLogMessage("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]");
-                            log.printLogMessage("       Correlacion:<<<"+correlacionAB+">>>");
+                            log.printLogMessage("       Correlacion AB:<<<"+correlacionAB+">>>\tCorrelacion Entradas:<<<"+correlacionABEntrada+">>>\tCorrelacion Salidas:<<<"+correlacionABSalida+">>>");
                             //Agregando nodo
-                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
-                            
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), linkGoogleChartA, linkGoogleChartB, correlacionAB, correlacionABEntrada, correlacionABSalida));
                             
                         }else{
                             Log.println("<"+contador + ">", Log.ANSI_GREEN);
                             Log.println("WSDL_A:" + url_WSDL, Log.ANSI_GREEN);
                             Log.println("WSDL_B:" + ficheros.get(i), Log.ANSI_GREEN);
-                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);                          
+                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);
                             Log.println("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]", Log.ANSI_GREEN);
-                            Log.println("       Correlacion:<<<"+correlacionAB+">>>", Log.ANSI_GREEN);
+                            log.printLogMessage("       Correlacion AB:<<<"+correlacionAB+">>>\tCorrelacion Entradas:<<<"+correlacionABEntrada+">>>\tCorrelacion Salidas:<<<"+correlacionABSalida+">>>");
                             //Agregando nodo
-                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
-                            
-                        }                 
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), linkGoogleChartA, linkGoogleChartB, correlacionAB, correlacionABEntrada, correlacionABSalida));
+                        }
                         
                     }
                 }
@@ -465,38 +530,56 @@ public class TreeMatcher {
                         
                         contador++;
                         
+                        arbolA.ordenar();
+                        arbolB.ordenar();
                         //Comparando operacionA en turno con operacion B en turno
-                        ArbolWSDL superarbol[];
+                        ArbolWSDL superarbol[], superarbolEntrada[], superarbolSalida[];
                         superarbol = ArbolWSDL.generarSuperArboles(arbolA, arbolB);
-                        List<Float> vectcaracA,vectcaracB; 
-                        float correlacionAB;
+                        
+                        List<Float> vectcaracA,vectcaracB, vectcaracAEntrada, vectcaracBEntrada, vectcaracASalida, vectcaracBSalida; 
+                        float correlacionAB, correlacionABEntrada, correlacionABSalida;
                         vectcaracA = superarbol[0].getVectorCaracteristico();
                         vectcaracB = superarbol[1].getVectorCaracteristico();
-                        correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
-                        //log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );//DEPURACION
                         
+                        
+                        arbolA.ordenarPorMensajes();
+                        arbolB.ordenarPorMensajes();
+                        superarbolEntrada = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 1);
+                        superarbolSalida = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 2);
+                        vectcaracAEntrada = superarbolEntrada[0].getVectorCaracteristico();
+                        vectcaracBEntrada = superarbolEntrada[1].getVectorCaracteristico();
+                        vectcaracASalida = superarbolSalida[0].getVectorCaracteristico();
+                        vectcaracBSalida = superarbolSalida[1].getVectorCaracteristico();
+                        
+                        correlacionAB = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracA, vectcaracB);
+                        correlacionABEntrada = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracAEntrada, vectcaracBEntrada);
+                        correlacionABSalida = ArbolWSDL.calcularFactorDeCorrelacion(vectcaracASalida, vectcaracBSalida);
+                        //log.printLogMessage("El factor de correlacion para los vectores caracteristicos es de: " + correlacionAB );//DEPURACION                        
+                        
+                        String linkGoogleChartA, linkGoogleChartB;
+                        linkGoogleChartA = arbolA.makeDotGoogleChartLink(false);
+                        linkGoogleChartB =  arbolB.makeDotGoogleChartLink(false);                        
+
                         if(correlacionAB < 0.75){
                             log.printLogMessage("<"+contador + ">");
                             log.printLogMessage("WSDL_A:" + ficheros.get(columna));
                             log.printLogMessage("WSDL_B:" + ficheros.get(renglon));
-                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");                           
+                            log.printLogMessage("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]");
                             log.printLogMessage("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]");
-                            log.printLogMessage("       Correlacion:<<<"+correlacionAB+">>>");
+                            log.printLogMessage("       Correlacion AB:<<<"+correlacionAB+">>>\tCorrelacion Entradas:<<<"+correlacionABEntrada+">>>\tCorrelacion Salidas:<<<"+correlacionABSalida+">>>");
                             //Agregando nodo
-                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
-                            
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), linkGoogleChartA, linkGoogleChartB, correlacionAB, correlacionABEntrada, correlacionABSalida));
                             
                         }else{
                             Log.println("<"+contador + ">", Log.ANSI_GREEN);
                             Log.println("WSDL_A:" + ficheros.get(columna), Log.ANSI_GREEN);
                             Log.println("WSDL_B:" + ficheros.get(renglon), Log.ANSI_GREEN);
-                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);                          
+                            Log.println("       Servicio_A:"+arbolA.getServicio()+" Operacion_A:"+arbolA.getOperacion()+" ["+arbolA.getPeso()+"]", Log.ANSI_GREEN);
                             Log.println("       Servicio_B:"+arbolB.getServicio()+" Operacion_B:"+arbolB.getOperacion()+" ["+arbolB.getPeso()+"]", Log.ANSI_GREEN);
-                            Log.println("       Correlacion:<<<"+correlacionAB+">>>", Log.ANSI_GREEN);
+                            log.printLogMessage("       Correlacion AB:<<<"+correlacionAB+">>>\tCorrelacion Entradas:<<<"+correlacionABEntrada+">>>\tCorrelacion Salidas:<<<"+correlacionABSalida+">>>");
                             //Agregando nodo
-                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), correlacionAB));
-                            
-                        }                 
+                            resultados.add(new MatcherResult(arbolA.getServicio(), arbolB.getServicio(), arbolA.getOperacion(), arbolB.getOperacion(), linkGoogleChartA, linkGoogleChartB, correlacionAB, correlacionABEntrada, correlacionABSalida));
+                        }
                         
                     }
                 }
@@ -548,17 +631,21 @@ public class TreeMatcher {
             for(ArbolWSDL arbolB : operacionesWSDLservicioB){
                 arbolB.ordenar();
                 //comparativa
-                for(ArbolWSDL arbolA : operacionesWSDLservicioA){  
+                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                        arbolA.ordenar();
                         //Comparando operacionA en turno con operacion B en turno
                         ArbolWSDL superarbol[], superarbolEntrada[], superarbolSalida[];
                         superarbol = ArbolWSDL.generarSuperArboles(arbolA, arbolB);
-                        superarbolEntrada = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 1);
-                        superarbolSalida = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 2);
+
                         List<Float> vectcaracA,vectcaracB, vectcaracAEntrada, vectcaracBEntrada, vectcaracASalida, vectcaracBSalida; 
                         float correlacionAB, correlacionABEntrada, correlacionABSalida;
                         vectcaracA = superarbol[0].getVectorCaracteristico();
                         vectcaracB = superarbol[1].getVectorCaracteristico();
                         
+                        arbolA.ordenarPorMensajes();
+                        arbolB.ordenarPorMensajes();
+                        superarbolEntrada = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 1);
+                        superarbolSalida = ArbolWSDL.generarSuperArboles(arbolA, arbolB, 2);
                         vectcaracAEntrada = superarbolEntrada[0].getVectorCaracteristico();
                         vectcaracBEntrada = superarbolEntrada[1].getVectorCaracteristico();
                         vectcaracASalida = superarbolSalida[0].getVectorCaracteristico();
