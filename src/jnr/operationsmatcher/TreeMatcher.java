@@ -147,9 +147,9 @@ public class TreeMatcher {
                 operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
                 
                 //Ordenando los arboles de las operaciones
-                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                /*for(ArbolWSDL arbolA : operacionesWSDLservicioA){
                     arbolA.ordenar();
-                }
+                }*/
                 contador=1;
             
             for(int renglon=columna+1; renglon<noArchivos; renglon++){//Control de renglones
@@ -162,9 +162,9 @@ public class TreeMatcher {
                 operacionesWSDLservicioB = wsdlEstructuradoB.getArbolesDeOperaciones();
                 
                 //Ordenando los arboles de las operaciones
-                for(ArbolWSDL arbolB : operacionesWSDLservicioB){
+                /*for(ArbolWSDL arbolB : operacionesWSDLservicioB){
                     arbolB.ordenar();
-                }
+                }*/
                 
                 //Comparando las operaciones del servicio A con las operaciones del servicio B
                 for(ArbolWSDL arbolA : operacionesWSDLservicioA){
@@ -279,9 +279,9 @@ public class TreeMatcher {
                 operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
                 
                 //Ordenando los arboles de las operaciones
-                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                /*for(ArbolWSDL arbolA : operacionesWSDLservicioA){
                     arbolA.ordenar();
-                }
+                }*/
 
          //Extraccion de operaciones para el servicio A
                 WSDLExtractStructure wsdlEstructuradoB = new WSDLExtractStructure(url_WSDL_B);
@@ -290,9 +290,9 @@ public class TreeMatcher {
                 operacionesWSDLservicioB = wsdlEstructuradoB.getArbolesDeOperaciones();
                 
                 //Ordenando los arboles de las operaciones
-                for(ArbolWSDL arbolB : operacionesWSDLservicioB){
+                /*for(ArbolWSDL arbolB : operacionesWSDLservicioB){
                     arbolB.ordenar();
-                }
+                }*/
                 
                 
                 int contador = 0;
@@ -387,9 +387,9 @@ public class TreeMatcher {
                 operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
                 
                 //Ordenando los arboles de las operaciones
-                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                /*for(ArbolWSDL arbolA : operacionesWSDLservicioA){
                     arbolA.ordenar();
-                }
+                }*/
                 contador=1;
             
             for(int i=0; i<noArchivos; i++){//Control de renglones
@@ -402,9 +402,9 @@ public class TreeMatcher {
                 operacionesWSDLservicioB = wsdlEstructuradoB.getArbolesDeOperaciones();
                 
                 //Ordenando los arboles de las operaciones
-                for(ArbolWSDL arbolB : operacionesWSDLservicioB){
+                /*for(ArbolWSDL arbolB : operacionesWSDLservicioB){
                     arbolB.ordenar();
-                }
+                }*/
                 
                 //Comparando las operaciones del servicio A con las operaciones del servicio B
                 for(ArbolWSDL arbolA : operacionesWSDLservicioA){
@@ -502,9 +502,9 @@ public class TreeMatcher {
                 operacionesWSDLservicioA = wsdlEstructuradoA.getArbolesDeOperaciones();
                 
                 //Ordenando los arboles de las operaciones
-                for(ArbolWSDL arbolA : operacionesWSDLservicioA){
+                /*for(ArbolWSDL arbolA : operacionesWSDLservicioA){
                     arbolA.ordenar();
-                }
+                }*/
                 contador=1;
             
             for(int renglon=columna+1; renglon<noArchivos; renglon++){//Control de renglones
@@ -517,9 +517,9 @@ public class TreeMatcher {
                 operacionesWSDLservicioB = wsdlEstructuradoB.getArbolesDeOperaciones();
                 
                 //Ordenando los arboles de las operaciones
-                for(ArbolWSDL arbolB : operacionesWSDLservicioB){
+                /*for(ArbolWSDL arbolB : operacionesWSDLservicioB){
                     arbolB.ordenar();
-                }
+                }*/
                 
                 //Comparando las operaciones del servicio A con las operaciones del servicio B
                 for(ArbolWSDL arbolA : operacionesWSDLservicioA){
